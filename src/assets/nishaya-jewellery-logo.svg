@@ -1,0 +1,10 @@
+<svg width="720" height="240" viewBox="0 0 720 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="240" rx="28" fill="#FFFCF7"/>
+  <circle cx="112" cy="120" r="72" stroke="#A77B2E" stroke-width="4"/>
+  <path d="M112 52L126 78L112 96L98 78L112 52Z" fill="#A77B2E"/>
+  <path d="M82 160V83L142 160V83" stroke="#17161A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="112" cy="120" r="6" fill="#A77B2E"/>
+  <text x="218" y="118" fill="#17161A" font-family="Georgia, 'Times New Roman', serif" font-size="64" letter-spacing="8">NISHAYA</text>
+  <path d="M220 140H642" stroke="#A77B2E" stroke-width="2"/>
+  <text x="220" y="176" fill="#7B5A22" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="10">JEWELLERY</text>
+</svg>

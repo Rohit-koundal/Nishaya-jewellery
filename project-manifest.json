@@ -1,0 +1,35 @@
+{
+  "format": "standalone-commerce-project",
+  "version": 1,
+  "generatedAt": "2026-09-26T13:07:28.067Z",
+  "project": {
+    "name": "Nishaya Jewellery",
+    "folder": "nishaya-jewellery",
+    "companyName": "Nishaya Jewellery"
+  },
+  "industry": {
+    "id": "jewellery",
+    "name": "Jewellery"
+  },
+  "features": {
+    "masterConfiguration": false,
+    "storePortfolio": false,
+    "projectGenerator": false,
+    "websiteDesigner": true,
+    "responsiveStorefront": true,
+    "installablePhoneApp": true,
+    "offlineAppShell": true,
+    "mobileNavigation": true,
+    "cartWishlistCheckout": true,
+    "ordersReturnsTracking": true,
+    "customerNotifications": true,
+    "reportsAndInsights": true,
+    "sellerAndAdminMobileViews": true,
+    "backendTrustValidation": true,
+    "signedPlatformEntitlements": true,
+    "systemUpdateStatus": true
+  },
+  "dataIncluded": false,
+  "credentialsIncluded": true,
+  "managedInstallation": true
+}

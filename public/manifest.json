@@ -1,0 +1,82 @@
+{
+  "short_name": "Nishaya Jeweller",
+  "name": "Nishaya Jewellery",
+  "id": "/",
+  "description": "Shop jewellery products, manage your bag and track orders with Nishaya Jewellery.",
+  "icons": [
+    {
+      "src": "nishaya-jewellery-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/?source=installed-app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "theme_color": "#6d1f34",
+  "background_color": "#fffaf2",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": [
+    "shopping",
+    "business",
+    "lifestyle"
+  ],
+  "shortcuts": [
+    {
+      "name": "Shop products",
+      "short_name": "Shop",
+      "url": "/products?source=app-shortcut",
+      "icons": [
+        {
+          "src": "nishaya-jewellery-logo.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Shopping bag",
+      "short_name": "Bag",
+      "url": "/cart?source=app-shortcut",
+      "icons": [
+        {
+          "src": "nishaya-jewellery-logo.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "My orders",
+      "short_name": "Orders",
+      "url": "/orders?source=app-shortcut",
+      "icons": [
+        {
+          "src": "nishaya-jewellery-logo.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Wishlist",
+      "short_name": "Wishlist",
+      "url": "/wishlist?source=app-shortcut",
+      "icons": [
+        {
+          "src": "nishaya-jewellery-logo.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
