@@ -12,20 +12,20 @@ const swatches = {
   Rose: '#ff5f86',
 };
 
-export function ProductVisual({ product, compact = false, showMeta = true }) {
+export function ProductVisual({ product, compact = false, showMeta = true, fill = false }) {
   const [imageFailed, setImageFailed] = useState(false);
   const image = getPrimaryImageUrl(product.images) || product.images?.find((item) => isUsableImageUrl(item?.url))?.url;
-  const frameClass = compact ? 'aspect-[4/5] w-full' : 'h-56 w-full md:h-64';
+  const frameClass = fill ? 'absolute inset-0 h-full w-full' : compact ? 'relative aspect-[4/5] w-full' : 'relative h-56 w-full md:h-64';
   if (image && !imageFailed) {
     return (
-      <div className={`relative overflow-hidden bg-[#f6efe8] ${frameClass}`}>
-        <img loading="lazy" decoding="async" src={normalizeImageUrl(image)} alt={product.name} onError={() => setImageFailed(true)} className="h-full w-full object-cover object-center" />
+      <div className={`overflow-hidden bg-[#f6efe8] ${frameClass}`}>
+        <img loading="lazy" decoding="async" src={normalizeImageUrl(image)} alt={product.name} onError={() => setImageFailed(true)} className="absolute inset-0 block h-full w-full object-contain object-center" />
       </div>
     );
   }
   const color = swatches[product.colors?.[0]] || '#6d1f34';
   return (
-    <div className={`relative overflow-hidden bg-[#f6efe8] ${frameClass}`}>
+    <div className={`overflow-hidden bg-[#f6efe8] ${frameClass}`}>
       <div className="absolute inset-x-5 bottom-0 h-[86%] rounded-t-[90px]" style={{ background: `linear-gradient(145deg, ${color}, #f9d4dd)` }} />
       <div className="absolute left-1/2 top-8 h-24 w-20 -translate-x-1/2 rounded-t-full bg-[#f6d2bf]" />
       <div className="absolute bottom-0 left-1/2 h-[70%] w-[54%] -translate-x-1/2 rounded-t-[80px] bg-white/20 ring-8 ring-white/30" />

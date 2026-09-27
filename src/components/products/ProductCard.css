@@ -17,10 +17,10 @@
 .sc-product-card button { cursor: pointer; }
 .sc-product-card button:disabled { cursor: not-allowed; }
 .sc-product-card :is(button, [role=button]):focus-visible { outline: 2px solid var(--catalog-primary); outline-offset: -3px; }
-.sc-product-card__media, .site-storefront .sc-product-card [data-theme-product-media] { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 7px 7px 0 0; background: #f4f2ef; }
-.sc-product-card__carousel { width: 100%; height: 100%; }
-.sc-product-card__carousel img { object-position: center top; }
-.sc-product-card__carousel > div:only-child { height: 100%; }
+.sc-product-card__media, .site-storefront .sc-product-card [data-theme-product-media] { position: relative; width: 100%; flex-shrink: 0; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 7px 7px 0 0; background: #f4f2ef; }
+/* The frame owns the dimensions, never the image's intrinsic size. This also
+   works when the website designer changes the card ratio or grid columns. */
+.sc-product-card__media > .sc-product-card__carousel { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sc-product-card.is-unavailable .sc-product-card__carousel { opacity: .8; }
 .sc-product-card__wishlist { position: absolute; top: 10px; right: 10px; z-index: 20; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #ffffffa6; border-radius: 50%; background: #fffffff0; color: #34333a; transition: color .15s, background .15s; }
 .sc-product-card__wishlist:hover, .sc-product-card__wishlist.is-active { color: var(--catalog-primary); background: #fff; }

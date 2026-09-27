@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { normalizeImageEntries, normalizeImageUrl } from '../../services/normalize';
 import { ProductVisual } from './ProductVisual';
+import './ProductImageCarousel.css';
 
 export default function ProductImageCarousel({
   product,
@@ -133,15 +134,15 @@ export default function ProductImageCarousel({
       {images.length ? (
         <>
           <div
-            className="flex h-full w-full transition-transform duration-300 ease-out"
+            className="sc-product-carousel__track transition-transform duration-300 ease-out"
             style={{ transform: `translateX(-${index * 100}%)` }}
           >
             {images.map((image, imageIndex) => (
-              <div key={`${image.url}-${imageIndex}`} className="h-full w-full shrink-0">
+              <div key={`${image.url}-${imageIndex}`} className="sc-product-carousel__slide">
                 {visited.includes(imageIndex) && <img
                   src={normalizeImageUrl(image.url)}
                   alt={product?.name || 'Product'}
-                  className="h-full w-full object-cover object-center"
+                  className="sc-product-carousel__image"
                   loading={priority && imageIndex === 0 ? 'eager' : 'lazy'}
                   fetchPriority={priority && imageIndex === 0 ? 'high' : 'auto'}
                   decoding="async"
@@ -188,7 +189,7 @@ export default function ProductImageCarousel({
           )}
         </>
       ) : (
-        <ProductVisual product={product} compact={false} showMeta={false} />
+        <ProductVisual product={product} fill showMeta={false} />
       )}
 
       {children}

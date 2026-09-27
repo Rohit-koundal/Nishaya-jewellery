@@ -44,3 +44,27 @@ test('missing images keep the original fallback', () => {
   render(<ProductImageCarousel product={{ name: 'Product', images: [] }} />);
   expect(screen.getByText('No image available')).toBeInTheDocument();
 });
+
+test('keyboard opening and horizontal swipe navigation remain available', () => {
+  const open = jest.fn();
+  const { container } = render(<ProductImageCarousel product={product} onOpen={open} />);
+  const carousel = screen.getByRole('button', { name: 'View Silk saree' });
+  fireEvent.keyDown(carousel, { key: 'Enter' });
+  expect(open).toHaveBeenCalledTimes(1);
+  fireEvent.touchStart(carousel, { touches: [{ clientX: 160, clientY: 80 }] });
+  fireEvent.touchMove(carousel, { touches: [{ clientX: 70, clientY: 83 }] });
+  fireEvent.touchEnd(carousel);
+  expect(container.querySelector('.sc-product-carousel__track')).toHaveStyle({ transform: 'translateX(-100%)' });
+  fireEvent.click(carousel);
+  expect(open).toHaveBeenCalledTimes(1);
+});
+
+test('vertical scrolling does not change the active image', () => {
+  const { container } = render(<ProductImageCarousel product={product} />);
+  const carousel = screen.getByRole('button', { name: 'View Silk saree' });
+  fireEvent.touchStart(carousel, { touches: [{ clientX: 160, clientY: 80 }] });
+  fireEvent.touchMove(carousel, { touches: [{ clientX: 155, clientY: 190 }] });
+  fireEvent.touchEnd(carousel);
+  expect(container.querySelector('.sc-product-carousel__track')).toHaveStyle({ transform: 'translateX(-0%)' });
+  expect(container.querySelectorAll('img')).toHaveLength(1);
+});

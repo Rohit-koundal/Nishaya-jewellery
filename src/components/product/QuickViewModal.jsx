@@ -25,7 +25,7 @@ export default function QuickViewModal({ product, onClose, onOpenFull }) {
     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
     <section role="dialog" aria-modal="true" aria-label={`Quick view ${product.name}`} className="relative grid max-h-[90vh] w-full max-w-3xl overflow-auto rounded-3xl bg-white shadow-2xl md:grid-cols-[.9fr_1.1fr]" onClick={(event) => event.stopPropagation()}>
       <button type="button" onClick={onClose} className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-slate-700 shadow" aria-label="Close quick view"><X className="h-5 w-5" /></button>
-      <div className="min-h-72 bg-[#f7eee8]">{image ? <img src={image} alt={product.name} className="h-full max-h-[580px] w-full object-cover object-top" /> : <div className="grid h-full min-h-72 place-items-center font-black text-wine">{product.name}</div>}</div>
+      <div className="relative aspect-[4/5] max-h-[580px] min-h-72 bg-[#f7eee8]">{image ? <img src={image} alt={product.name} className="absolute inset-0 block h-full w-full object-contain object-center" /> : <div className="grid h-full min-h-72 place-items-center font-black text-wine">{product.name}</div>}</div>
       <div className="flex flex-col justify-center p-6 sm:p-8">
         <p className="text-xs font-black uppercase tracking-[.18em] text-wine">Quick view</p>
         <h2 className="mt-3 text-2xl font-black text-charcoal">{product.name}</h2>
