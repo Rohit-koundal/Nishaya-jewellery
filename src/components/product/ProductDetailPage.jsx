@@ -73,8 +73,8 @@ export default function ProductDetailPage({
   returnPolicy = '',
 }) {
   const breadcrumb = useMemo(
-    () => ['Home', product?.category || 'Products', product?.name || 'Product'],
-    [product?.category, product?.name],
+    () => [{ label: 'Home', path: '/' }, ...(product?.categoryPath?.length ? product.categoryPath.map((category) => ({ label: category.name, path: `/products?category=${encodeURIComponent(category.slug || category._id)}` })) : [{ label: product?.category || 'Products', path: product?.categoryId ? `/products?category=${encodeURIComponent(product.categoryId)}` : '/products' }]), { label: product?.name || 'Product' }],
+    [product?.category, product?.categoryId, product?.categoryPath, product?.name],
   );
 
   const rating = Number(reviewSummary?.average ?? product?.rating ?? 0).toFixed(1);
@@ -92,11 +92,11 @@ export default function ProductDetailPage({
         <nav className="sc-pdp__breadcrumb" aria-label="Breadcrumb">
           {breadcrumb.map((item, index) => (
             <span
-              key={`${item}-${index}`}
+              key={`${item.label}-${index}`}
               className={`sc-pdp__breadcrumb-item${index === breadcrumb.length - 1 ? ' sc-pdp__breadcrumb-item--active' : ''}`}
             >
-              {index === breadcrumb.length - 1 ? item : (
-                <button type="button" onClick={() => navigate(index === 0 ? '/' : similarTarget)}>{item}</button>
+              {index === breadcrumb.length - 1 ? item.label : (
+                <button type="button" onClick={() => navigate(item.path)}>{item.label}</button>
               )}
               {index < breadcrumb.length - 1 ? <ChevronRight className="sc-pdp__breadcrumb-sep" aria-hidden="true" /> : null}
             </span>

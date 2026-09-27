@@ -181,9 +181,31 @@ test('category editor creates a normalized child category from the list-first dr
   await screen.findByRole('option', { name: 'Sarees' });
   fireEvent.change(screen.getByLabelText('Product field template'), { target: { value: 'sarees' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add Category' }));
-  await waitFor(() => expect(api.post).toHaveBeenCalledWith('/admin/categories', expect.objectContaining({ name: 'Festive Sarees', slug: 'festive-sarees', parent: 'parent', definitionKey: 'sarees' })));
+  await waitFor(() => expect(api.post).toHaveBeenCalledWith('/admin/categories', expect.objectContaining({ name: 'Festive Sarees', slug: 'clothing-festive-sarees', parent: 'parent', definitionKey: 'sarees' })));
   expect(await screen.findByRole('status')).toHaveTextContent('Category added successfully');
 });
+test('subcategory shortcut preselects its parent and generates an unambiguous child URL', async () => {
+  api.get.mockImplementation(async path => path === '/catalog-configuration' ? { categoryDefinitions: [] } : [{ _id: 'earrings', name: 'Earrings', slug: 'earrings', level: 0, isActive: true }]);
+  render(<Categories />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Add subcategory to Earrings' }));
+  expect(screen.getByLabelText('Parent category')).toHaveValue('earrings');
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Jhumkas' } });
+  expect(screen.getByLabelText('Slug')).toHaveValue('earrings-jhumkas');
+  await act(async () => { await Promise.resolve(); });
+});
+
+test('category editor excludes itself and descendants from possible parents', async () => {
+  const root = { _id: 'root', name: 'Earrings', slug: 'earrings', level: 0, isActive: true };
+  api.get.mockImplementation(async path => path === '/admin/categories/root' ? root : path === '/catalog-configuration' ? { categoryDefinitions: [] } : [root, { _id: 'child', name: 'Jhumkas', slug: 'jhumkas', parent: { _id: 'root', name: 'Earrings' }, level: 1 }, { _id: 'safe', name: 'Jewellery', slug: 'jewellery', level: 0 }]);
+  render(<Categories />);
+  await screen.findByRole('button', { name: 'Add subcategory to Earrings' });
+  fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+  const parent = await screen.findByLabelText('Parent category');
+  await waitFor(() => expect(within(parent).getByRole('option', { name: 'Jewellery' })).toBeInTheDocument());
+  expect(within(parent).queryByRole('option', { name: /Jhumkas/ })).not.toBeInTheDocument();
+  expect(within(parent).queryByRole('option', { name: 'Earrings' })).not.toBeInTheDocument();
+});
+
 test('coupon pause preserves redeemed history and archive keeps it restorable', async () => {
   const coupon = { _id: 'coupon', code: 'FESTIVE', discountType: 'percentage', discountValue: 10, isActive: true, usedCount: 2 };
   api.get.mockImplementation(async path => path.includes('/coupons') ? [coupon] : path.includes('/categories') ? [category] : []);

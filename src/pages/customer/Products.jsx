@@ -22,6 +22,9 @@ import SeoHead from '../../components/seo/SeoHead';
 import api from '../../services/api';
 import StorefrontBannerSlot from '../../components/banners/StorefrontBannerSlot';
 import { buildCatalogFacets } from '../../utils/catalogFacets';
+import { categoryId, categoryLabel, findCategory, flattenCategories } from '../../utils/categoryHierarchy';
+import CategoryBrowse from '../../components/products/CategoryBrowse';
+const EMPTY_CATEGORIES = [];
 
 const PAGE_SIZE = 24;
 const CATALOG_RETURN_KEY = 'samira_catalog_return';
@@ -51,7 +54,7 @@ export default function Products({ navigate, route = '/products' }) {
     ...(requestPage === 1 ? { includeFacets: 'true' } : {}),
     ...(requestPage > 1 ? { silent: true } : {}),
   }), [params, requestPage, storeSlug]);
-  const { data: categories = [] } = useGetCategoriesQuery({ store: storeSlug });
+  const { data: categories = EMPTY_CATEGORIES } = useGetCategoriesQuery({ store: storeSlug });
   const { data: banners = [] } = useGetBannersQuery({ store: storeSlug });
   const { currentData: productData, isLoading, isFetching, error, refetch } = useGetProductsQuery(requestParams);
 
@@ -96,7 +99,7 @@ export default function Products({ navigate, route = '/products' }) {
   const facets = useMemo(() => normalizeServerFacets(catalogState.facets, categories) || fallbackFacets, [catalogState.facets, categories, fallbackFacets]);
   const dynamicFacets = catalogState.facets?.dynamicFacets || fallbackDynamicFacets;
   const visibleProducts = catalog;
-  const collectionLabel = useMemo(() => getCollectionLabel(routeQuery, filters), [routeQuery, filters]);
+  const collectionLabel = useMemo(() => (!filters.search && !filters.category.includes(',') && findCategory(filters.category, categories)?.name) || getCollectionLabel(routeQuery, filters), [routeQuery, filters, categories]);
   const categorySeo = useMemo(() => {
     const selected = splitFilterValues(filters.category);
     if (selected.length !== 1) return null;
@@ -110,8 +113,10 @@ export default function Products({ navigate, route = '/products' }) {
   }, [categories, filters.category]);
 
   useLayoutEffect(() => {
-    dispatch(replaceCatalogFilters(normalizeCatalogQuery(routeQuery)));
-  }, [dispatch, routeQuery]);
+    const next = normalizeCatalogQuery(routeQuery);
+    next.category = splitFilterValues(next.category).map((value) => categoryId(findCategory(value, categories)) || value).join(',');
+    dispatch(replaceCatalogFilters(next));
+  }, [dispatch, routeQuery, categories]);
 
   useEffect(() => {
     if (filters.search) trackEvent('SEARCH', { searchQuery: filters.search });
@@ -187,6 +192,7 @@ export default function Products({ navigate, route = '/products' }) {
     <section className="min-h-screen bg-[#f5f5f6] px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-3 md:p-0 lg:bg-white">
       <SeoHead route={route} page={categorySeo || undefined} />
       {showCatalogBanner && <StorefrontBannerSlot banners={banners} position="Category - Featured" navigate={navigate} compact className="max-w-[1500px] px-0 md:px-6" />}
+      {!!categories.length && <CategoryBrowse categories={categories} selected={filters.category} navigate={navigate} storeSlug={storeSlug} />}
       {(
         <DesktopNewArrivalsLayout
           navigate={navigate}
@@ -249,7 +255,7 @@ export default function Products({ navigate, route = '/products' }) {
         >
           All
         </button>
-        {categories.map((category) => {
+        {categories.filter((category) => !category.parent).map((category) => {
           const categoryValue = category._id || category.id || category.slug || category.name;
           const active = splitFilterValues(filters.category).includes(String(categoryValue));
           return (
@@ -339,9 +345,9 @@ function normalizeServerFacets(serverFacets, categories) {
   const categoryCounts = new Map((serverFacets.categories || []).map((item) => [String(item.value), Number(item.count || 0)]));
   return {
     ...serverFacets,
-    categories: (categories || []).map((category) => {
+    categories: flattenCategories(categories).map((category) => {
       const value = String(category._id || category.id || category.slug || category.name || '');
-      return { value, label: category.name || category.title || 'Category', count: categoryCounts.get(value) || 0 };
+      return { value, label: category.name || category.title || 'Category', level: category.depth, parent: category.parent, pathLabel: categoryLabel(category, categories), count: categoryCounts.get(value) || 0 };
     }).filter((item) => item.value),
   };
 }

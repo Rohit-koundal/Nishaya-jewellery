@@ -259,7 +259,7 @@ function CheckboxList({ options = [], selected, onToggle, renderLeading, emptyTe
         const isSelected = selected.has(normalizeKey(option.value));
         const disabled = !option.count && !isSelected;
         return (
-          <label key={option.value} className={`sc-filter__row${disabled ? ' is-disabled' : ''}`}>
+          <label key={option.value} className={`sc-filter__row${disabled ? ' is-disabled' : ''}`} title={option.pathLabel || option.label} style={{ paddingLeft: `${Math.min(option.level || 0, 5) * 12}px` }}>
             <span className="sc-filter__row-main">
               <input
                 type="checkbox"
@@ -330,7 +330,7 @@ function FilterSearch({ label, value, onChange }) {
 function filterOptions(options = [], query = '') {
   const term = query.trim().toLowerCase();
   if (!term) return options;
-  return options.filter((option) => option.label.toLowerCase().includes(term));
+  return options.filter((option) => (option.pathLabel || option.label).toLowerCase().includes(term));
 }
 
 function buildAppliedFilters(filters, facets, dynamicFacets = []) {

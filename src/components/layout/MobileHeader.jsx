@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import MobileSearchOverlay from './MobileSearchOverlay';
+import { CategoryNavigation } from './CategoryNavigation';
 import { parseStoreSlug } from '../../utils/attribution';
 import { storefrontPath } from '../../utils/routing';
 import { useBrandIdentity } from '../../context/BrandIdentityContext';
@@ -29,15 +30,6 @@ import logoFallback from '../../assets/nishaya-jewellery-logo.svg';
 import StoreLogo from '../ui/StoreLogo';
 import { useWebsiteCustomization } from '../../context/WebsiteCustomizationContext';
 
-const categoryLinks = [
-  ['Sarees', '/products?search=Saree'],
-  ['Suits', '/products?search=Suit'],
-  ['Kurtis', '/products?search=Kurti'],
-  ['Dresses', '/products?search=Dress'],
-  ['Lehengas', '/products?search=Lehenga'],
-  ['Ethnic Sets', '/products?search=Set'],
-  ['Accessories', '/products?search=Accessory'],
-];
 
 export default function MobileHeader({ navigate, route = '/' }) {
   const brand = useBrandIdentity();
@@ -178,9 +170,7 @@ export default function MobileHeader({ navigate, route = '/' }) {
               </div>
 
               <DrawerSection title="Shop by category">
-                {categoryLinks.map(([label, path]) => (
-                  <DrawerLink key={label} label={label} onClick={() => go(path)} compact />
-                ))}
+                {open && <CategoryNavigation navigate={go} storeSlug={parseStoreSlug(route)} />}
               </DrawerSection>
 
               <DrawerSection title="My account">

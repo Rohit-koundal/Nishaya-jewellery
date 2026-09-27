@@ -14,6 +14,7 @@ jest.mock('../../services/api', () => ({
 }));
 jest.mock('../../store/apiSlice', () => ({
   samiraApi: { util: { resetApiState: () => ({ type: 'api/reset' }) } },
+  useGetCategoriesQuery: () => ({ data: [], refetch: jest.fn() }),
 }));
 jest.mock('../../context/CartContext', () => ({ useCart: () => ({ itemCount: 0 }) }));
 jest.mock('../../context/WishlistContext', () => ({ useWishlist: () => ({ items: [] }) }));

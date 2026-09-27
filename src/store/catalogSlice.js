@@ -1,4 +1,5 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { categoryMatchesProduct } from '../utils/categoryHierarchy';
 
 const sortOptions = ['newest', 'bestSeller', 'priceLowHigh', 'priceHighLow', 'discount', 'rating'];
 export const clearableCatalogFilterKeys = ['search', 'category', 'size', 'color', 'fabric', 'occasion', 'discount', 'rating', 'stock', 'minPrice', 'maxPrice', 'featured', 'newArrival', 'bestSeller', 'trending'];
@@ -167,16 +168,7 @@ function getSearchTermVariants(term) {
 
 function matchesCategory(product, category, categories) {
   if (!category) return true;
-  const productAliases = new Set([
-    normalizeKey(product.categoryId),
-    normalizeKey(product.category),
-    normalizeKey(product.subCategory),
-  ].filter(Boolean));
-
-  return splitFilterValues(category).some((selected) => {
-    const categoryAliases = resolveCategoryAliases(normalizeKey(selected), categories);
-    return Array.from(categoryAliases).some((alias) => productAliases.has(alias));
-  });
+  return splitFilterValues(category).some((selected) => categoryMatchesProduct(product, selected, categories));
 }
 
 export function splitFilterValues(value) {
@@ -195,22 +187,6 @@ export function toggleFilterValue(activeValue, value) {
   return (exists ? selected.filter((item) => normalizeKey(item) !== nextKey) : [...selected, nextValue]).join(',');
 }
 
-function resolveCategoryAliases(value, categories) {
-  const aliases = new Set([value]);
-  (categories || []).forEach((category) => {
-    const categoryValues = [
-      normalizeKey(category?._id),
-      normalizeKey(category?.id),
-      normalizeKey(category?.slug),
-      normalizeKey(category?.name),
-    ].filter(Boolean);
-
-    if (categoryValues.includes(value)) {
-      categoryValues.forEach((item) => aliases.add(item));
-    }
-  });
-  return aliases;
-}
 
 function matchesArrayValue(values, activeValue) {
   if (!activeValue) return true;

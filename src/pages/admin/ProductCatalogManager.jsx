@@ -1,3 +1,4 @@
+import { flattenCategories } from '../../utils/categoryHierarchy';
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, Archive, Banknote, Camera, Check, ChevronDown, Copy, Download, Eye,
@@ -213,7 +214,7 @@ export default function ProductCatalogManager({ route = '/admin/products', apiPr
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(260px,1.5fr)_repeat(5,minmax(135px,0.8fr))]">
           <label className="flex h-11 items-center gap-2 rounded-full border border-[#eadfd5] bg-white px-4"><PackageSearch className="h-4 w-4 text-slate-400" /><input aria-label="Search products" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Name, SKU, fabric or details" className="w-full bg-transparent text-sm outline-none" /></label>
-          <Select label="Category filter" value={category} onChange={changeFilter(setCategory)} options={[['', 'All categories'], ...categories.map((item) => [item._id, item.name])]} />
+          <Select label="Category filter" value={category} onChange={changeFilter(setCategory)} options={[['', 'All categories'], ...flattenCategories(categories).map((item) => [item._id, item.pathLabel || item.name])]} />
           <Select label="Status filter" value={status} onChange={changeFilter(setStatus)} options={[['', 'All visibility'], ['active', 'Active'], ['inactive', 'Inactive']]} />
           <Select label="Stock filter" value={stock} onChange={changeFilter(setStock)} options={[['', 'All stock'], ['low', 'Low stock'], ['out', 'Out of stock'], ['in', 'In stock']]} />
           <Select label="Completeness filter" value={completeness} onChange={changeFilter(setCompleteness)} options={[['', 'All quality'], ['missing-media', 'Missing media'], ['missing-seo', 'Missing SEO']]} />

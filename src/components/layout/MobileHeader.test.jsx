@@ -23,6 +23,8 @@ jest.mock('../../services/api', () => ({
   default: { get: jest.fn() },
 }));
 
+jest.mock('../../store/apiSlice', () => ({ useGetCategoriesQuery: () => ({ data: [{ _id: 'earrings', name: 'Earrings', slug: 'earrings' }], refetch: jest.fn() }) }));
+
 describe('mobile header search', () => {
   test('keeps search collapsed until the icon is pressed, then submits the focused search view', () => {
     const navigate = jest.fn();
@@ -52,8 +54,8 @@ describe('mobile header search', () => {
     expect(screen.getByText('Secure login with mobile number and OTP')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Login \/ Sign up/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sarees' }));
-    expect(navigate).toHaveBeenCalledWith('/products?search=Saree');
+    fireEvent.click(screen.getByRole('button', { name: 'View all Earrings' }));
+    expect(navigate).toHaveBeenCalledWith('/products?category=earrings');
     expect(screen.queryByRole('dialog', { name: 'Shopping menu' })).not.toBeInTheDocument();
   });
 

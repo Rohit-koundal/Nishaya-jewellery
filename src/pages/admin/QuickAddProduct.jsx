@@ -7,6 +7,7 @@ import { applySmartPatch } from '../../utils/productSmartFill';
 import PageHeader from '../../components/admin/PageHeader';
 import ImportSizeFields from '../../components/admin/ImportSizeFields';
 import { asCatalogList, fetchSubcategories } from '../../utils/catalogOptions';
+import CategoryPicker from '../../components/admin/CategoryPicker';
 import { importSizingProduct } from '../../utils/socialImport';
 import { buildSizeChartPayload, getSelectableSizes, getSizeChartValidation, resolveSizingMode } from '../../utils/productSizing';
 import './SocialProductImport.css';
@@ -103,7 +104,7 @@ export default function QuickAddProduct() {
       const next = { ...current, [field]: value };
       if (field === 'category') {
         const categoryName = categories.find((item) => item._id === value)?.name || '';
-        next.subCategory = '';
+        // Preserve existing optional product-type text when changing category.
         if (!nameTouchedRef.current && !String(next.name || '').trim() && categoryName) {
           next.name = categoryName;
         }
@@ -368,30 +369,11 @@ export default function QuickAddProduct() {
               {errors.name && <span className="admin-field__error">{errors.name}</span>}
             </label>
 
-            <div className="admin-field">
-              <span>Category<em>*</em></span>
-              <div className="admin-quick-add__chips">
-                {categories.map((category) => (
-                  <button
-                    key={category._id}
-                    type="button"
-                    className={`admin-quick-add__chip${form.category === category._id ? ' is-on' : ''}`}
-                    onClick={() => {
-                      setCategoryTouched(true);
-                      update('category', category._id);
-                    }}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-              {errors.category && <span className="admin-field__error">{errors.category}</span>}
-              {!categories.length && <span className="admin-field__error">No categories loaded yet.</span>}
-            </div>
+            <CategoryPicker categories={categories} value={form.category} error={errors.category} required onChange={(value) => { setCategoryTouched(true); update('category', value); }} />
 
             {form.category ? (
               <div className="admin-field">
-                <span>Subcategory</span>
+                <span>Product type (optional / legacy)</span>
                 {subcategories.length ? (
                   <div className="admin-quick-add__chips">
                     {subcategories.map((item) => (
@@ -406,7 +388,7 @@ export default function QuickAddProduct() {
                     ))}
                   </div>
                 ) : (
-                  <p className="admin-form-card__note">No subcategories in this category yet. Type one below if needed.</p>
+                  <p className="admin-form-card__note">Optional style or product type. Managed subcategories are selected above.</p>
                 )}
                 <input
                   value={form.subCategory}

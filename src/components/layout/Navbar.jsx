@@ -12,6 +12,7 @@ import { getDesktopActiveLink } from '../../utils/navbarActive';
 import { parseStoreSlug } from '../../utils/attribution';
 import { storefrontPath } from '../../utils/routing';
 import './Navbar.css';
+import CategoryMenu from './CategoryNavigation';
 
 const desktopLinks = [
   { label: 'Home', path: '/' },
@@ -127,7 +128,8 @@ export default function Navbar({
           </div>
 
           <nav className="sc-navbar__links" aria-label="Primary" style={{ justifyContent: headerConfig.menuAlignment === 'right' ? 'flex-end' : headerConfig.menuAlignment }}>
-            {navLinks.map((link) => {
+            <CategoryMenu navigate={go} storeSlug={parseStoreSlug(route)} route={route} />
+            <div className="sc-navbar__menu-items">{navLinks.map((link) => {
               const targetPath = String(link.path || '').split('?')[0];
               const isActive = activeLinkLabel === link.label || (targetPath !== '/' && routePath === targetPath) || (targetPath === '/' && routePath === '/');
               return (
@@ -144,7 +146,7 @@ export default function Navbar({
                   <span>{link.label}</span>
                 </button>
               );
-            })}
+            })}</div>
           </nav>
 
           <div className="sc-navbar__controls">

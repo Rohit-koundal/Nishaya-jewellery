@@ -3,6 +3,7 @@ import { Eye, Link2, Search, Sparkles } from 'lucide-react';
 import api from '../../services/api';
 import { normalizeImageUrl } from '../../services/normalize';
 import ImageUploader from './ImageUploader';
+import { categoryDescendants, flattenCategories } from '../../utils/categoryHierarchy';
 
 const emptyCategory = {
   name: '', slug: '', parent: '', definitionKey: '', description: '', image: '', metaTitle: '', metaDescription: '', socialImage: '', displayOrder: 0, isActive: true,
@@ -34,7 +35,7 @@ function makeSlug(value) {
   return String(value || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-export default function CategoryForm({ mode = 'Add', categoryId, onSaved, onCancel, onDirtyChange, availableCategories }) {
+export default function CategoryForm({ mode = 'Add', categoryId, initialParent = '', onSaved, onCancel, onDirtyChange, availableCategories }) {
   const [form, setForm] = useState(emptyCategory);
   const [initialSnapshot, setInitialSnapshot] = useState(JSON.stringify(emptyCategory));
   const [categories, setCategories] = useState(Array.isArray(availableCategories) ? availableCategories : []);
@@ -50,7 +51,7 @@ export default function CategoryForm({ mode = 'Add', categoryId, onSaved, onCanc
 
   useEffect(() => {
     if (!categoryId) {
-      const next = normalizedForm();
+      const next = normalizedForm({ parent: initialParent });
       setForm(next);
       setInitialSnapshot(JSON.stringify(next));
       setAutoSlug(true);
@@ -84,7 +85,7 @@ export default function CategoryForm({ mode = 'Add', categoryId, onSaved, onCanc
       });
 
     return () => { cancelled = true; };
-  }, [categoryId, mode, reload]);
+  }, [categoryId, initialParent, mode, reload]);
 
   useEffect(() => {
     if (Array.isArray(availableCategories)) setCategories(availableCategories);
@@ -116,12 +117,16 @@ export default function CategoryForm({ mode = 'Add', categoryId, onSaved, onCanc
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  const parentOptions = useMemo(() => categories
-    .filter((category) => String(category._id) !== String(categoryId) && !category.isArchived)
-    .sort((left, right) => Number(left.level || 0) - Number(right.level || 0) || Number(left.displayOrder || 0) - Number(right.displayOrder || 0) || String(left.name).localeCompare(String(right.name))), [categories, categoryId]);
+  const parentOptions = useMemo(() => {
+    const excluded = categoryDescendants(categoryId, categories);
+    const branchDepth = Math.max(0, ...categories.filter((item) => excluded.has(String(item._id))).map((item) => Number(item.level || 0) - Number(categories.find((node) => String(node._id) === String(categoryId))?.level || 0)));
+    return flattenCategories(categories).filter((category) => !excluded.has(String(category._id)) && !category.isArchived && Number(category.level || 0) + 1 + branchDepth <= 5);
+  }, [categories, categoryId]);
 
+  const automaticSlug = (name, parent) => makeSlug([categories.find((item) => String(item._id) === String(parent))?.slug, name].filter(Boolean).join('-'));
   const update = (field, value) => setForm((current) => {
-    if (field === 'name' && autoSlug) return { ...current, name: value, slug: makeSlug(value) };
+    if (field === 'name' && autoSlug) return { ...current, name: value, slug: automaticSlug(value, current.parent) };
+    if (field === 'parent' && autoSlug) return { ...current, parent: value, slug: automaticSlug(current.name, value) };
     return { ...current, [field]: value };
   });
 
@@ -192,10 +197,10 @@ export default function CategoryForm({ mode = 'Add', categoryId, onSaved, onCanc
             <Input label="Name" value={form.name} onChange={(value) => update('name', value)} required maxLength={80} />
             <Select label="Parent category" value={form.parent} onChange={(value) => update('parent', value)}>
               <option value="">Top-level category</option>
-              {parentOptions.map((category) => <option key={category._id} value={category._id}>{`${'— '.repeat(Math.min(Number(category.level || 0), 4))}${category.name}`}</option>)}
+              {parentOptions.map((category) => <option key={category._id} value={category._id}>{category.pathLabel}</option>)}
             </Select>
             <label className="grid gap-2 text-sm font-black md:col-span-2">
-              <span className="flex items-center justify-between gap-3">Slug <button type="button" className="text-xs font-bold text-wine underline" onClick={() => { setAutoSlug(true); update('slug', makeSlug(form.name)); }}>Use automatic</button></span>
+              <span className="flex items-center justify-between gap-3">Slug <button type="button" className="text-xs font-bold text-wine underline" onClick={() => { setAutoSlug(true); update('slug', automaticSlug(form.name, form.parent)); }}>Use automatic</button></span>
               <div className="category-form__slug"><Link2 size={16} /><input aria-label="Slug" required maxLength={120} value={form.slug} onChange={(event) => { setAutoSlug(false); update('slug', makeSlug(event.target.value)); }} placeholder="category-url" /></div>
               <small>/products?category={form.slug || 'category-url'} {autoSlug ? '· updates with the name' : '· custom URL'}</small>
             </label>

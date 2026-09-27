@@ -1,3 +1,4 @@
+import { flattenCategories } from '../../utils/categoryHierarchy';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Boxes, CalendarHeart, ChevronDown, Grid3X3, Palette, Percent, Ruler, SlidersHorizontal, Sparkles, Star, Tag, X } from 'lucide-react';
 import { splitFilterValues, toggleFilterValue } from '../../store/catalogSlice';
@@ -140,13 +141,16 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
             {activeSection === 'category' && (
               <FilterSection title="Category">
                 <div className="space-y-2">
-                  {categories.map((category) => {
+                  {flattenCategories(categories).map((category) => {
                     const value = category._id || category.id || category.slug || category.name;
                     const selected = splitFilterValues(draft.category).includes(String(value));
                     const count = Number((facets.categories || []).find((item) => String(item.value) === String(value))?.count || 0);
                     return (
                       <button
                         key={value}
+                        title={category.pathLabel}
+                        aria-pressed={selected}
+                        style={{ paddingLeft: `${12 + Math.min(category.depth || 0, 5) * 12}px` }}
                         type="button"
                         disabled={!count && !selected}
                         onClick={() => setDraft((current) => ({ ...current, category: toggleFilterValue(current.category, value) }))}

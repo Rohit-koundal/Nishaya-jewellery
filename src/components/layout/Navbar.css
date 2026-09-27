@@ -14,7 +14,7 @@
   .sc-navbar--sticky { position: sticky; top: 0; }
 
   .sc-navbar__shell {
-    overflow: hidden;
+    overflow: visible;
     border-radius: 0;
     box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
     background: var(--navbar-bg, #fffaf2);
@@ -158,6 +158,14 @@
     min-width: 0;
     padding: 0 0 0 8px;
     white-space: nowrap;
+    overflow: visible;
+  }
+
+  .sc-navbar__menu-items {
+    display: flex;
+    align-items: center;
+    gap: inherit;
+    min-width: 0;
     overflow: hidden;
   }
 

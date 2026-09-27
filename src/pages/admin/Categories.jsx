@@ -8,6 +8,7 @@ import { AdminTable } from './Products';
 import api from '../../services/api';
 import { normalizeImageUrl } from '../../services/normalize';
 import { asCatalogList } from '../../utils/catalogOptions';
+import { categoryDescendants, flattenCategories } from '../../utils/categoryHierarchy';
 
 const emptyImpact = { productCount: 0, activeProductCount: 0, draftCount: 0, couponCount: 0, childCount: 0, canDelete: false };
 
@@ -34,17 +35,17 @@ export default function Categories() {
   useEffect(() => { load(); }, [load]);
 
   const roots = useMemo(() => categories.filter((category) => !category.parent && !category.isArchived), [categories]);
-  const filtered = useMemo(() => categories.filter((category) => {
+  const filtered = useMemo(() => flattenCategories(categories).filter((category) => {
     const search = query.trim().toLowerCase();
-    const matchesSearch = !search || [category.name, category.slug, category.description, category.parent?.name].some((value) => String(value || '').toLowerCase().includes(search));
+    const matchesSearch = !search || [category.name, category.slug, category.description, category.pathLabel, category.parent?.name].some((value) => String(value || '').toLowerCase().includes(search));
     const matchesStatus = status === 'all'
       || (status === 'active' && category.isActive && !category.isArchived)
       || (status === 'hidden' && !category.isActive && !category.isArchived)
       || (status === 'archived' && category.isArchived)
       || (status === 'empty' && Number(category.productCount || 0) === 0 && !category.isArchived);
-    const matchesParent = parent === 'all' || (parent === 'root' ? !category.parent : String(category.parent?._id || category.parent || '') === parent);
+    const matchesParent = parent === 'all' || (parent === 'root' ? !category.parent : categoryDescendants(parent, categories).has(String(category._id)) && String(category._id) !== parent);
     return matchesSearch && matchesStatus && matchesParent;
-  }).sort(categorySort), [categories, parent, query, status]);
+  }), [categories, parent, query, status]);
 
   const summary = useMemo(() => ({
     total: categories.filter((item) => !item.isArchived).length,
@@ -119,9 +120,11 @@ export default function Categories() {
     if (!selected.length || busy) return;
     setBusy('bulk');
     try {
-      await Promise.all(selected.map((id) => operation === 'archive'
-        ? api.patch(`/admin/categories/${id}/archive`, {})
-        : api.patch(`/admin/categories/${id}/status`, { isActive: operation === 'show' })));
+      const ordered = flattenCategories(categories).filter((item) => selected.includes(item._id));
+      for (const item of ordered) {
+        if (operation === 'archive') await api.patch(`/admin/categories/${item._id}/archive`, {});
+        else await api.patch(`/admin/categories/${item._id}/status`, { isActive: operation === 'show' });
+      }
       await load();
       notify(`${selected.length} categories updated.`);
       setSelected([]);
@@ -136,16 +139,17 @@ export default function Categories() {
     const siblings = categories.filter((item) => !item.isArchived && String(item.parent?._id || item.parent || '') === parentId).sort(categorySort);
     const siblingIndex = siblings.findIndex((item) => item._id === category._id);
     return [
-      <div className="category-list-name">
+      <div className="category-list-name" style={{ paddingLeft: `${Math.min(category.depth || 0, 5) * 18}px` }}>
         <input type="checkbox" aria-label={`Select ${category.name}`} checked={selected.includes(category._id)} disabled={category.isArchived} onChange={() => toggleSelected(category._id)} />
         <CategoryThumb category={category} />
-        <div><strong>{category.name}</strong><span>{category.parent?.name ? `${category.parent.name} / ${category.slug}` : category.slug}</span>{category.definitionKey ? <small>{category.definitionKey.replaceAll('_', ' ')}</small> : null}</div>
+        <div><strong>{category.name}</strong><span>{category.parent ? category.pathLabel : category.slug}</span>{category.definitionKey ? <small>{category.definitionKey.replaceAll('_', ' ')}</small> : null}</div>
       </div>,
       <div className="category-count"><strong>{Number(category.activeProductCount || 0)} live</strong><span>{Number(category.productCount || 0)} products · {Number(category.draftCount || 0)} drafts</span>{Number(category.childCount || 0) > 0 ? <small>{category.childCount} subcategories</small> : null}</div>,
       category.isArchived ? <StatusBadge value="Archived" /> : <button type="button" className="category-visibility" disabled={busy === category._id} onClick={() => toggleStatus(category)} aria-label={`${category.isActive ? 'Hide' : 'Show'} ${category.name}`}><StatusBadge value={category.isActive ? 'Active' : 'Inactive'} /><span>{category.isActive ? 'Hide' : 'Show'}</span></button>,
       <div className="category-order"><button type="button" aria-label={`Move ${category.name} up`} disabled={category.isArchived || siblingIndex <= 0 || Boolean(busy)} onClick={() => moveCategory(category, -1)}><ArrowUp size={15} /></button><strong>{category.displayOrder}</strong><button type="button" aria-label={`Move ${category.name} down`} disabled={category.isArchived || siblingIndex < 0 || siblingIndex === siblings.length - 1 || Boolean(busy)} onClick={() => moveCategory(category, 1)}><ArrowDown size={15} /></button></div>,
       <div className="category-actions">
         {!category.isArchived && <a href={`/products?category=${encodeURIComponent(category._id)}`} target="_blank" rel="noreferrer" className="admin-table-action-link" aria-label={`View ${category.name} storefront`}><Eye size={14} /> View</a>}
+        {!category.isArchived && Number(category.level || 0) < 5 && <button type="button" className="admin-table-action-link" aria-label={`Add subcategory to ${category.name}`} onClick={() => setEditor({ mode: 'Add', category: null, parent: category._id })}><Plus size={14} /> Subcategory</button>}
         {!category.isArchived && <button type="button" onClick={() => setEditor({ mode: 'Update', category })} className="admin-table-action-link"><Pencil size={14} /> Edit</button>}
         {category.isArchived ? <><button type="button" onClick={() => openAction(category, 'restore')} className="admin-table-action-link is-success"><RotateCcw size={14} /> Restore</button><button type="button" onClick={() => openAction(category, 'delete')} className="admin-table-action-link is-danger"><Trash2 size={14} /> Delete</button></> : <button type="button" onClick={() => openAction(category, 'archive')} className="admin-table-action-link is-danger"><Archive size={14} /> Archive</button>}
       </div>,
@@ -154,7 +158,7 @@ export default function Categories() {
 
   return (
     <section className="space-y-5">
-      <PageHeader title="Categories" note="Organize storefront navigation, product fields and search visibility from one place.">
+      <PageHeader title="Categories & subcategories" note="Create a category, add subcategories, then assign products to the most specific level. Parent pages include all their subcategories.">
         <button type="button" className="admin-btn" onClick={() => setEditor({ mode: 'Add', category: null })}><Plus size={17} /> Add category</button>
       </PageHeader>
 
@@ -197,17 +201,18 @@ function SummaryCard({ label, value, icon: Icon, tone = 'wine', active, onClick 
 function CategoryEditor({ editor, categories, onClose, onSaved }) {
   const [dirty, setDirty] = useState(false);
   const attemptClose = () => { if (!dirty || window.confirm('Discard the unsaved category changes?')) onClose(); };
-  return <div className="category-modal" role="dialog" aria-modal="true" aria-label={`${editor.mode} category`}><button type="button" className="category-modal__backdrop" aria-label="Close category editor" onClick={attemptClose} /><div className="category-modal__panel"><header><div><p>Catalog management</p><h2>{editor.mode === 'Add' ? 'Add a category' : `Edit ${editor.category.name}`}</h2></div><button type="button" aria-label="Close category editor" onClick={attemptClose}><X size={21} /></button></header><div className="category-modal__body"><CategoryForm mode={editor.mode} categoryId={editor.category?._id} availableCategories={categories} onSaved={onSaved} onCancel={onClose} onDirtyChange={setDirty} /></div></div></div>;
+  return <div className="category-modal" role="dialog" aria-modal="true" aria-label={`${editor.mode} category`}><button type="button" className="category-modal__backdrop" aria-label="Close category editor" onClick={attemptClose} /><div className="category-modal__panel"><header><div><p>Catalog management</p><h2>{editor.mode === 'Add' ? 'Add a category' : `Edit ${editor.category.name}`}</h2></div><button type="button" aria-label="Close category editor" onClick={attemptClose}><X size={21} /></button></header><div className="category-modal__body"><CategoryForm mode={editor.mode} categoryId={editor.category?._id} initialParent={editor.parent || ''} availableCategories={categories} onSaved={onSaved} onCancel={onClose} onDirtyChange={setDirty} /></div></div></div>;
 }
 
 function CategoryActionDialog({ action, categories, busy, onChange, onClose, onRun }) {
   const { category, impact, kind, loading, error, impactFailed } = action;
-  const destinations = categories.filter((item) => item._id !== category._id && !item.isArchived);
+  const excluded = categoryDescendants(category._id, categories);
+  const destinations = flattenCategories(categories).filter((item) => !excluded.has(String(item._id)) && !item.isArchived);
   const linked = Number(impact.productCount || 0) + Number(impact.draftCount || 0) + Number(impact.couponCount || 0);
   const title = kind === 'delete' ? 'Permanently delete category' : kind === 'restore' ? 'Restore category' : 'Archive category safely';
   return <div className="category-modal category-action-modal" role="dialog" aria-modal="true" aria-label={title}><button type="button" className="category-modal__backdrop" aria-label="Close category action" onClick={onClose} /><div className="category-action-modal__panel"><header><div><p>Category safety</p><h2>{title}</h2></div><button type="button" aria-label="Close category action" onClick={onClose}><X size={21} /></button></header><div className="category-action-modal__content"><div className="category-action-modal__identity"><CategoryThumb category={category} /><div><strong>{category.name}</strong><span>{category.slug}</span></div></div>{loading ? <p role="status">Checking linked catalogue data…</p> : <><div className="category-impact-grid"><span><strong>{impact.productCount || 0}</strong> products</span><span><strong>{impact.draftCount || 0}</strong> drafts</span><span><strong>{impact.childCount || 0}</strong> subcategories</span><span><strong>{impact.couponCount || 0}</strong> coupons</span></div>{kind === 'archive' && <><p>Archiving removes this category and its subcategories from customer navigation. Products and orders remain stored.</p>{linked > 0 && destinations.length > 0 ? <DestinationSelect action={action} destinations={destinations} onChange={onChange} optional /> : null}</>}{kind === 'restore' && <p>The category will return as hidden. Review it, then make it visible when ready.</p>}{kind === 'delete' && <>{impact.canDelete ? <label className="grid gap-2 text-sm font-black">Type “{category.name}” to confirm<input autoFocus value={action.confirmation} onChange={(event) => onChange({ ...action, confirmation: event.target.value })} className="h-12 rounded-xl border border-rose/40 px-4" /></label> : <><p className="category-action-modal__warning">Permanent deletion is blocked while this category has linked products, drafts, coupons or subcategories. Reassign linked catalogue items first.</p>{linked > 0 && destinations.length > 0 ? <DestinationSelect action={action} destinations={destinations} onChange={onChange} /> : null}</>}</>}{error && <p role="alert" className="category-action-modal__error">{error}</p>}</>}</div><footer><button type="button" className="admin-btn-ghost" onClick={onClose}>Cancel</button>{kind === 'archive' && action.targetCategoryId ? <button type="button" disabled={busy || loading || impactFailed} className="admin-btn" onClick={() => onRun('reassign')}>Move items & archive</button> : null}{kind === 'archive' && !action.targetCategoryId ? <button type="button" disabled={busy || loading || impactFailed} className="admin-btn" onClick={() => onRun('archive')}>Archive category</button> : null}{kind === 'restore' ? <button type="button" disabled={busy || loading || impactFailed} className="admin-btn" onClick={() => onRun('restore')}>Restore category</button> : null}{kind === 'delete' && !impact.canDelete && action.targetCategoryId ? <button type="button" disabled={busy || loading || impactFailed} className="admin-btn" onClick={() => onRun('reassign')}>Move linked items</button> : null}{kind === 'delete' ? <button type="button" disabled={busy || loading || impactFailed || !impact.canDelete || action.confirmation.trim().toLowerCase() !== category.name.trim().toLowerCase()} className="admin-btn-danger" onClick={() => onRun('delete')}>Delete permanently</button> : null}</footer></div></div>;
 }
 
 function DestinationSelect({ action, destinations, onChange, optional = false }) {
-  return <label className="grid gap-2 text-sm font-black">Move linked products, drafts and coupons {optional ? 'first (optional)' : ''}<select value={action.targetCategoryId} onChange={(event) => onChange({ ...action, targetCategoryId: event.target.value })} className="h-12 rounded-xl border border-slate-200 bg-white px-4"><option value="">Choose destination category</option>{destinations.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></label>;
+  return <label className="grid gap-2 text-sm font-black">Move linked products, drafts and coupons {optional ? 'first (optional)' : ''}<select value={action.targetCategoryId} onChange={(event) => onChange({ ...action, targetCategoryId: event.target.value })} className="h-12 rounded-xl border border-slate-200 bg-white px-4"><option value="">Choose destination category</option>{destinations.map((item) => <option key={item._id} value={item._id}>{item.pathLabel || item.name}</option>)}</select></label>;
 }

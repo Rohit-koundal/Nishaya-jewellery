@@ -37,8 +37,8 @@ describe('buildCatalogFacets', () => {
     const facets = buildCatalogFacets(products, categories, {});
 
     expect(facets.categories.map(({ label, count }) => [label, count])).toEqual([
-      ['Sarees', 1],
       ['Kurtis', 1],
+      ['Sarees', 1],
     ]);
     expect(facets.sizes.map(({ value }) => value)).toEqual(['S', 'M', 'XL']);
     expect(facets.colors.map(({ value }) => value)).toEqual(['Sage', 'Wine']);
@@ -50,7 +50,8 @@ describe('buildCatalogFacets', () => {
   test('facet counts honor other active filters but ignore their own filter', () => {
     const facets = buildCatalogFacets(products, categories, { category: 'sarees-id', size: 'XL' });
 
-    expect(facets.categories.map(({ count }) => count)).toEqual([0, 1]);
+    expect(facets.categories.find(({ value }) => value === 'sarees-id').count).toBe(0);
+    expect(facets.categories.find(({ value }) => value === 'kurtis-id').count).toBe(1);
     expect(facets.sizes.find(({ value }) => value === 'S').count).toBe(1);
     expect(facets.sizes.find(({ value }) => value === 'XL').count).toBe(0);
   });

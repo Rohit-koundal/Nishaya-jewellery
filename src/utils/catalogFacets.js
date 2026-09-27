@@ -1,4 +1,5 @@
 import { matchesCatalogFilters, normalizeCatalogQuery } from '../store/catalogSlice';
+import { categoryMatchesProduct, flattenCategories } from './categoryHierarchy';
 
 export const DISCOUNT_FILTERS = [50, 40, 30, 20, 10];
 export const RATING_FILTERS = [4, 3, 2];
@@ -23,10 +24,13 @@ export function buildCatalogFacets(products = [], categories = [], filters = {})
   const stockProducts = productsFor('stock');
 
   return {
-    categories: (categories || []).map((category) => ({
+    categories: flattenCategories(categories).map((category) => ({
+      level: category.depth,
+      parent: category.parent,
+      pathLabel: category.pathLabel,
       label: category?.name || category?.title || 'Category',
       value: String(category?._id || category?.id || category?.slug || category?.name || ''),
-      count: categoryProducts.filter((product) => productMatchesCategory(product, category)).length,
+      count: categoryProducts.filter((product) => categoryMatchesProduct(product, category._id || category.id || category.slug || category.name, categories)).length,
     })).filter((option) => option.value),
     sizes: buildValueOptions(source, sizeProducts, 'size', sortSizes),
     colors: buildValueOptions(source, colorProducts, 'color'),
@@ -145,15 +149,6 @@ function sortSizes(a, b) {
   return a.label.localeCompare(b.label, undefined, { numeric: true });
 }
 
-function productMatchesCategory(product, category) {
-  const categoryAliases = [category?._id, category?.id, category?.slug, category?.name]
-    .map(normalizeKey)
-    .filter(Boolean);
-  const productAliases = [product?.categoryId, product?.category, product?.subCategory]
-    .map(normalizeKey)
-    .filter(Boolean);
-  return categoryAliases.some((alias) => productAliases.includes(alias));
-}
 
 function buildPriceBuckets(allProducts, countProducts) {
   const prices = allProducts.map((product) => Number(product?.price)).filter((price) => Number.isFinite(price) && price >= 0);

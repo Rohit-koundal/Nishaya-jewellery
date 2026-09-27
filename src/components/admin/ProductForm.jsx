@@ -13,6 +13,8 @@ import {
   buildAssistantSuggestions,
 } from '../../utils/productAssistant';
 import { fetchCategories, fetchSubcategories } from '../../utils/catalogOptions';
+import CategoryPicker from './CategoryPicker';
+import { categoryPath } from '../../utils/categoryHierarchy';
 import { buildVariantMatrix, hasManagedVariants } from '../../utils/variants';
 import {
   buildSizeChartPayload,
@@ -717,27 +719,16 @@ export default function ProductForm({
       {!!duplicateReview.conflicts.length && <div className="product-duplicate-warning" role="status"><strong>{duplicateReview.conflicts.some((item) => item.blocking) ? 'Resolve duplicate catalog values' : 'Similar product found'}</strong>{duplicateReview.conflicts.map((item) => <p key={item.id}><span>{item.name}</span> matches {item.reasons.join(' and ')}. <a href={`${apiPrefix}/products/edit?id=${item.id}`}>Review product</a></p>)}</div>}
 
       <Section id="product-pricing" step="02" title="Category, Pricing and Inventory" note="Where it sits in the catalog and how it is sold.">
-        <label className="admin-field">
-          <span>Category<em>*</em></span>
-          <select
-            value={form.category}
-            onChange={(event) => {
-              const category = categories.find((item) => String(item._id) === String(event.target.value));
-              setForm((current) => ({ ...current, category: event.target.value, subCategory: '', categoryDefinitionKey: category?.definitionKey || definitionKey(category?.name) }));
-              clearErrors(setErrors, 'category', 'attributes');
-            }}
-            className={`admin-field__control${errors.category ? ' is-error' : ''}`}
-            data-error-field="category"
-            aria-invalid={Boolean(errors.category)}
-          >
-            <option value="">{categoriesLoaded ? 'Select category' : 'Loading categories...'}</option>
-            {categories.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}
-          </select>
-          {errors.category && <span className="admin-field__error">{errors.category}</span>}
+        <div>
+          <CategoryPicker categories={categories} value={form.category} loading={!categoriesLoaded} error={errors.category} required onChange={(value) => {
+            const category = categories.find((item) => String(item._id) === value);
+            setForm((current) => ({ ...current, category: value, categoryDefinitionKey: category?.definitionKey || definitionKey(category?.name) }));
+            clearErrors(setErrors, 'category', 'attributes');
+          }} />
           {categoriesLoaded && !categories.length ? <span className="admin-field__error">No category is available for this store. <button type="button" className="underline" onClick={() => setCategoryReload((value) => value + 1)}>Retry</button>{apiPrefix === '/admin' ? <> or <a className="underline" href="/admin/categories">create a category</a></> : null}.</span> : null}
-        </label>
+        </div>
         {viewMode === 'advanced' && <label className="admin-field">
-          <span>Subcategory</span>
+          <span>Product type (optional / legacy)</span>
           <input
             list="product-subcategories"
             value={form.subCategory}
@@ -747,7 +738,7 @@ export default function ProductForm({
               setForm((current) => ({ ...current, subCategory, categoryDefinitionKey: definition?.key || current.categoryDefinitionKey }));
             }}
             className="admin-field__control"
-            placeholder={availableSubcategories.length ? 'Select or type a subcategory' : 'Optional subcategory'}
+            placeholder="Optional style or product type"
           />
           <datalist id="product-subcategories">
             {availableSubcategories.map((item) => <option key={item} value={item} />)}
@@ -1540,6 +1531,12 @@ function findCategoryDefinition(structure, categories = [], form = {}) {
   const definitions = structure?.categoryDefinitions || [];
   const selectedCategory = categories.find((category) => String(category._id) === String(form.category));
   const subcategory = String(form.subCategory || '').trim().toLowerCase();
+  if (selectedCategory?.parent) {
+    for (const node of categoryPath(selectedCategory, categories).reverse()) {
+      const match = definitions.find((item) => item.key === node.definitionKey || item.key === definitionKey(node.name));
+      if (match) return match;
+    }
+  }
   if (subcategory) {
     const child = definitions.find((item) => item.key === definitionKey(subcategory) || String(item.name || '').trim().toLowerCase() === subcategory);
     if (child) return child;

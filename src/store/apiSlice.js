@@ -369,7 +369,7 @@ function tagsForPath(path = '', mutation = false) {
   if (path.includes('/admin/dashboard')) return ['AdminDashboard', 'Inventory'];
   if (path.includes('/quick-analyze')) return [];
   if (path.includes('/admin/products')) return mutation ? ['AdminProducts', 'Products', 'AdminDashboard'] : ['AdminProducts'];
-  if (path.includes('/admin/categories')) return mutation ? ['AdminCategories', 'Categories'] : ['AdminCategories'];
+  if (path.includes('/admin/categories')) return mutation ? ['AdminCategories', 'Categories', 'Products', 'AdminProducts', 'ProductDrafts', 'Coupons'] : ['AdminCategories'];
   if (path.includes('/admin/orders')) return mutation ? ['AdminOrders', 'Orders', 'AdminDashboard'] : ['AdminOrders'];
   if (path.includes('/admin/customers') || path.includes('/admin/users')) return ['AdminCustomers'];
   if (path.includes('/admin/settings')) return mutation ? ['AdminSettings', 'Settings', 'WebsiteCustomization', 'Cart'] : ['AdminSettings'];

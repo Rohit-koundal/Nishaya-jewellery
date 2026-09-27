@@ -5,6 +5,7 @@ import api from '../../services/api';
 import PageHeader from '../../components/admin/PageHeader';
 import ImportSizeFields from '../../components/admin/ImportSizeFields';
 import { fetchCategories } from '../../utils/catalogOptions';
+import CategoryPicker from '../../components/admin/CategoryPicker';
 import { normalizeImageUrl } from '../../services/normalize';
 import { SOCIAL_IMPORT_RUNNING, SOCIAL_IMPORT_STATUS, socialReviewForm, socialReviewError, socialPublishMissing, socialUrlError } from '../../utils/socialImport';
 import './SocialProductImport.css';
@@ -181,7 +182,7 @@ function ReviewImport({ job, categories, structure, structureError, onCreated })
       <div className="social-import__autofill"><strong>{missing.length ? `${missing.length} essential ${missing.length === 1 ? 'detail needs' : 'details need'} your input` : 'Ready for your final review'}</strong><p>{missing.length ? missing.join(' · ') : 'Confirm the photos and details below, then publish.'}</p><p>Details found in the source are already filled. You can change any of them.</p></div>
       {saved && <p role="status" className="social-import__note">Your product draft is saved. Continue here whenever you are ready.</p>}
       <fieldset disabled={saving}>{field('name', 'Product name *')}
-        <label className="admin-field"><span>Category</span><select className="admin-field__control" value={form.category} onChange={(event) => update('category', event.target.value)}><option value="">Choose before publishing</option>{categories.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select></label>
+        <CategoryPicker categories={categories} value={form.category} onChange={(value) => update('category', value)} />
         <div className="social-import__field-row">{field('price', 'Selling price (₹)', 'number', job.suggestion?.priceNeedsReview ? 'Filled from the source — confirm your selling price.' : undefined)}{field('stock', 'Stock quantity', 'number', 'Only you know the stock available in your store.')}</div>
         {job.suggestion?.fieldSources?.price && <p className="social-import__price-source">Found in {({ caption: 'the caption', on_screen: 'video text', speech: 'reel audio' })[job.suggestion.fieldSources.price.source] || 'the source'}{job.suggestion.fieldSources.price.timestampSeconds != null ? ` at ${Number(job.suggestion.fieldSources.price.timestampSeconds).toFixed(1)}s` : ''}: “{job.suggestion.fieldSources.price.quote}”</p>}
         {job.suggestion?.priceAmbiguous && <p className="social-import__alert">The source price is unclear or belongs to several products. Enter the price for this product.</p>}
@@ -189,7 +190,7 @@ function ReviewImport({ job, categories, structure, structureError, onCreated })
         {structure?.attributes?.filter((item) => item.required).map((item) => <label className="admin-field" key={item.key}><span>{item.label}{item.unit ? ` (${item.unit})` : ''} *</span><input className="admin-field__control" maxLength={500} value={form.attributeValues[item.key] || ''} onChange={(event) => update('attributeValues', { ...form.attributeValues, [item.key]: event.target.value })} /></label>)}
         <details className="social-import__additional"><summary>Review all filled details & optional fields</summary>
           <label className="admin-field"><span>Description</span><textarea className="admin-field__control" rows={4} maxLength={6000} value={form.description} onChange={(event) => update('description', event.target.value)} /></label>
-          <div className="social-import__field-row">{field('originalPrice', 'MRP (₹)', 'number')}{field('subCategory', 'Subcategory')}{field('colors', 'Colors (comma separated)')}{field('fabric', 'Fabric / material')}{field('occasion', 'Occasion')}</div>
+          <div className="social-import__field-row">{field('originalPrice', 'MRP (₹)', 'number')}{field('subCategory', 'Product type (optional / legacy)')}{field('colors', 'Colors (comma separated)')}{field('fabric', 'Fabric / material')}{field('occasion', 'Occasion')}</div>
           {field('shortDescription', 'Short description')}{field('tags', 'Tags (comma separated)')}{field('highlights', 'Highlights (comma separated)')}
           {structure?.attributes?.filter((item) => !item.required).map((item) => <label className="admin-field" key={item.key}><span>{item.label}</span><input className="admin-field__control" maxLength={500} value={form.attributeValues[item.key] || ''} onChange={(event) => update('attributeValues', { ...form.attributeValues, [item.key]: event.target.value })} /></label>)}
         </details>

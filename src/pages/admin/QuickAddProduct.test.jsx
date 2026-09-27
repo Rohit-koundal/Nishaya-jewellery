@@ -15,7 +15,7 @@ async function fillBasic() {
   await waitFor(() => expect(screen.getByRole('button', { name: 'Looks good, add product' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'Upload test photo' }));
   fireEvent.change(screen.getByLabelText(/Product name/), { target: { value: 'Rose saree' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Sarees', exact: true }));
+  fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'sarees' } });
   fireEvent.change(screen.getByLabelText(/Selling price/), { target: { value: '999' } });
   fireEvent.change(screen.getByLabelText(/Stock/), { target: { value: '2' } });
   await act(() => Promise.resolve());
@@ -68,7 +68,7 @@ test('configured required attributes must be entered and persist in the product 
 });
 test('sized products can complete their real size chart without leaving Quick Add', async () => {
   render(<QuickAddProduct />); await fillBasic();
-  fireEvent.click(screen.getByRole('button', { name: 'Tops', exact: true }));
+  fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'tops' } });
   fireEvent.change(screen.getByLabelText(/Product name/), { target: { value: 'Rose cotton top' } });
   fireEvent.change(screen.getByLabelText('Sizing'), { target: { value: 'sized' } });
   fireEvent.change(screen.getByLabelText(/Available sizes/), { target: { value: 'M' } });

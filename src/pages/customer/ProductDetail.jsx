@@ -619,6 +619,7 @@ export default function ProductDetail({ navigate: navigateRoute, route = '' }) {
   return (
     <>
       <SeoHead route={route} product={product} />
+      {product.categoryPath?.length > 0 && <nav aria-label="Category breadcrumb" className="flex flex-wrap items-center gap-2 bg-white px-3 py-2 text-[11px] text-slate-500 lg:hidden"><button type="button" className="min-h-8" onClick={() => navigate('/products')}>All jewellery</button>{product.categoryPath.map((category) => <span key={category._id} className="flex items-center gap-2"><span aria-hidden="true">/</span><button type="button" className="min-h-8 font-semibold text-wine" onClick={() => navigate(`/products?category=${encodeURIComponent(category.slug || category._id)}`)}>{category.name}</button></span>)}</nav>}
       <div className="hidden lg:block">
         <ProductDetailPage
           product={product}
