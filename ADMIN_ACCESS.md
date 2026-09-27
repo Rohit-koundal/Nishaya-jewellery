@@ -11,6 +11,16 @@ ADMIN_EMAIL=nishaya.in1111@gmail.com
 
 Deploy the backend changes and restart/redeploy the service after changing its environment. Then sign out and log in with the new mobile number, verify its OTP and switch to admin mode. The first entry in `ADMIN_PHONE_NUMBERS` is the deployment owner. Further comma-separated numbers, when intentionally added, are ordinary admins. The primary entry must be valid; a blank configuration does not grant owner privileges.
 
+## Admin session duration
+
+New access tokens for server-verified admin accounts last **24 hours**, including when the admin is in customer mode. OTP login, mode switches and successful refreshes all use the same policy. Customer/seller access tokens retain `JWT_EXPIRES_IN` (default `15m`); refresh tokens and their HTTP-only cookie retain their existing expiry (default `30d`). No new environment variable is required.
+
+Deploy the updated **Nishaya backend**, then log out and complete OTP login once to receive the new duration. Previously issued tokens keep their original expiry. Normal refresh can continue a session beyond 24 hours when its cookie is available; 24 hours is not a forced daily logout.
+
+This reduces admin dependence on frequent refresh-cookie requests; it does not establish the cause of a particular production logout. Explicit logout, blocked/deleted accounts, revoked admin access and changed JWT signing secrets can still invalidate a session immediately. Browser storage clearing also removes the saved login. Do not change JWT secrets merely to deploy this update.
+
+Run `node --test --test-concurrency=1 tests/adminSession.unit.test.js tests/deploymentAdmin.test.js tests/authRecovery.unit.test.js` from `backend`. The tests simulate elapsed time rather than waiting 24 hours, and cover customer compatibility, OTP/mode/refresh issuance, logout, blocking and deployment-admin revocation.
+
 ## Why the old number kept working
 
 Previously the owner number was hardcoded, and saved database admin roles were retained on every login. Changing the allowlist did not demote existing accounts or invalidate their access/refresh tokens.
