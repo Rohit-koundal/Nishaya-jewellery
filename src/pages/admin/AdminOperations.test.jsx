@@ -12,6 +12,24 @@ const product = { _id: 'product-1', name: 'Rose kurta', stock: 8, variants: [], 
 const order = { _id: 'order12345678', orderStatus: 'Pending', paymentStatus: 'Pending', paymentMethod: 'COD', finalAmount: 1299, createdAt: '2026-09-06T00:00:00Z', orderItems: [{ product: 'p', name: 'Rose kurta', size: 'M', color: 'Pink', quantity: 1, price: 1299 }] };
 beforeEach(() => jest.clearAllMocks());
 
+test('self delivery asks for recipient confirmation and keeps payment unchanged', async () => {
+  let current = { ...order, revision: 4, orderStatus: 'Out for Delivery', allowedActions: ['MARK_DELIVERED'], shipment: { provider: 'manual', deliveryMode: 'SELF', status: 'OUT_FOR_DELIVERY' } };
+  api.get.mockImplementation(async path => path.endsWith('/receipt') ? null : current);
+  api.put.mockImplementation(async (_path, body) => { current = { ...current, revision: 5, orderStatus: 'Delivered', allowedActions: ['COLLECT_COD'], deliveryProof: { receivedBy: body.receivedBy }, shipment: { ...current.shipment, status: 'DELIVERED' } }; return current; });
+  render(<OrderDetail route={'/admin/orders/detail?id=' + order._id} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Mark delivered' }));
+  const dialog = screen.getByRole('dialog', { name: 'Confirm parcel delivered' });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm delivered' }));
+  expect(await within(dialog).findByRole('alert')).toHaveTextContent('Enter who received');
+  expect(api.put).not.toHaveBeenCalled();
+  fireEvent.change(within(dialog).getByLabelText('Received by'), { target: { value: 'Customer recipient' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm delivered' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(api.put).toHaveBeenCalledWith('/admin/orders/order12345678/status', expect.objectContaining({ orderStatus: 'Delivered', receivedBy: 'Customer recipient', revision: 4 }));
+  expect(current.paymentStatus).toBe('Pending');
+  expect(screen.getByRole('button', { name: 'Record COD' })).toBeInTheDocument();
+});
+
 const inventorySummary = { sellable: 8, capabilities: { canAdjust: true, canBulkAdjust: true, canApprove: true, canReceive: true, canExport: true, canViewCost: true } };
 const inventoryPage = (items = [product]) => ({ items, page: 1, limit: 25, total: items.length, totalPages: 1, capabilities: inventorySummary.capabilities });
 const mockInventory = (items = [product]) => api.get.mockImplementation(async (path) => path.includes('/inventory/summary') ? inventorySummary : inventoryPage(items));
@@ -100,6 +118,7 @@ test('shipment validation failures preserve order controls and entered tracking 
   render(<OrderDetail route={'/admin/orders/detail?id=' + order._id} />);
   const tracking = await screen.findByPlaceholderText('AWB / tracking number');
   fireEvent.change(tracking, { target: { value: 'AWB123' } });
+  fireEvent.change(screen.getByPlaceholderText('Courier name'), { target: { value: 'Test Courier' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save manual shipment' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('Tracking URL');
   expect(tracking).toHaveValue('AWB123');

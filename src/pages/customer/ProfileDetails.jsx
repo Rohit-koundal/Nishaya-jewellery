@@ -52,7 +52,7 @@ export default function ProfileDetails() {
   const emailVerified = useMemo(() => {
     if (!normalizedDraftEmail) return false;
     if (emailChanged) return Boolean(emailVerificationToken);
-    return Boolean(user?.isEmailVerified);
+    return Boolean(user?.isEmailVerified || emailVerificationToken);
   }, [emailChanged, emailVerificationToken, normalizedDraftEmail, user]);
 
   const onChange = (key, value) => {
@@ -312,7 +312,7 @@ export default function ProfileDetails() {
                   placeholder="Enter email"
                   type="email"
                 />
-                {normalizedDraftEmail && emailChanged ? (
+                {normalizedDraftEmail && (emailChanged || !user?.isEmailVerified) ? (
                   <>
                     <div className="flex gap-3">
                       <button type="button" onClick={requestEmailOtp} disabled={emailOtpSending || emailOtpVerifying || saving} className="h-[44px] min-w-[128px] border border-[#e5e7eb] px-4 text-[13px] font-bold text-[#1f2a44] disabled:opacity-60">

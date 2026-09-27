@@ -16,19 +16,21 @@ const ACTIONS = {
 function fallbackActions(order) {
   const values = [];
   const integrated = order.shipment?.provider && order.shipment.provider !== 'manual';
-  const tracking = order.shipment?.awb || order.shipment?.trackingNumber;
+  const tracking = order.shipment?.deliveryMode === 'SELF' || order.shipment?.awb || order.shipment?.trackingNumber;
+  if (order.rto?.status && order.rto.status !== 'NONE') return values;
+  const exception = ['EXCEPTION', 'FAILED'].includes(order.shipment?.status);
   if (order.orderStatus === 'Pending' && (order.paymentMethod === 'COD' || order.paymentStatus === 'Paid')) values.push('CONFIRM_ORDER');
   if (order.orderStatus === 'Confirmed') values.push('MARK_PACKED');
   if (order.orderStatus === 'Packed' && !integrated && tracking) values.push('MARK_SHIPPED');
-  if (order.orderStatus === 'Shipped' && !integrated) values.push('MARK_OUT_FOR_DELIVERY');
-  if (order.orderStatus === 'Out for Delivery' && !integrated) values.push('MARK_DELIVERED');
+  if (order.orderStatus === 'Shipped' && !integrated && !exception) values.push('MARK_OUT_FOR_DELIVERY');
+  if (order.orderStatus === 'Out for Delivery' && !integrated && !exception) values.push('MARK_DELIVERED');
   if (['Pending', 'Confirmed', 'Packed'].includes(order.orderStatus)) values.push('CANCEL_ORDER');
   if (order.paymentMethod === 'COD' && order.paymentStatus === 'Pending' && order.orderStatus === 'Delivered') values.push('COLLECT_COD');
   if (/Return|Exchange|Refund/.test(order.orderStatus || '')) values.push('REVIEW_RETURN');
   return values;
 }
 
-export default function OrderWorkflowActions({ order, busy, onStatus, onCancel, onCollectCod, onRefund, onResolveException, returnHref, compact = false }) {
+export default function OrderWorkflowActions({ order, busy, onStatus, onCancel, onCollectCod, onRefund, onResolveException, returnHref, detailHref, compact = false }) {
   const allowed = Array.isArray(order.allowedActions) ? order.allowedActions : fallbackActions(order);
   const visible = compact ? allowed.filter(action => !['REVIEW_RETURN', 'RECORD_COD_REFUND', 'RESOLVE_DELIVERY_EXCEPTION'].includes(action)).slice(0, 2) : allowed;
   if (!visible.length) return <span className="order-workflow-complete">No action needed</span>;
@@ -37,6 +39,7 @@ export default function OrderWorkflowActions({ order, busy, onStatus, onCancel, 
       const config = ACTIONS[action];
       if (!config) return null;
       const { Icon } = config;
+      if (compact && action === 'MARK_DELIVERED' && detailHref && (!order.shipment?.provider || order.shipment.provider === 'manual')) return <a key={action} href={detailHref} className="order-action-btn is-primary"><Icon size={14} />Confirm delivery</a>;
       if (action === 'REVIEW_RETURN') return <a key={action} href={returnHref} className="order-action-btn"><Icon size={14} />{config.label}</a>;
       return <button
         key={action}

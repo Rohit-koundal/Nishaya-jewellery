@@ -3,7 +3,7 @@ import api from '../../services/api';
 
 export const SHIPPING_DEFAULTS = { shippingProvider: 'manual', shippingPricingMode: 'fixed', shippingFreeAboveEnabled: true, shippingDefaultWeightKg: 0.5, shippingLengthCm: 30, shippingWidthCm: 25, shippingHeightCm: 5, shippingVolumetricDivisor: 5000, shippingWeightStepKg: 0.5, shippingAdditionalStepCharge: 0, shippingPickup: {}, shippingRateZones: [] };
 const PROVIDER_OPTIONS = [
-  ['manual', 'Manual courier'], ['shiprocket', 'Shiprocket'], ['bluedart', 'Blue Dart'], ['delhivery', 'Delhivery'], ['xpressbees', 'Xpressbees'],
+  ['manual', 'Self delivery / Manual courier'], ['shiprocket', 'Shiprocket'], ['bluedart', 'Blue Dart'], ['delhivery', 'Delhivery'], ['xpressbees', 'Xpressbees'],
 ];
 
 export default function DeliverySettings({ form, update, apiBase = '/admin/settings' }) {
@@ -34,7 +34,7 @@ export default function DeliverySettings({ form, update, apiBase = '/admin/setti
     if (data.shippingPricingMode === 'carrier' && !provider?.rateQuotes) update('shippingPricingMode', 'fixed');
   };
   return <>
-    <div className="store-settings__wide"><h3>Courier connection</h3><p className="admin-note">Choose one provider for new checkouts and shipments. Existing AWBs continue with the courier that originally created them.</p></div>
+    <div className="store-settings__wide"><h3>Delivery method</h3><p className="admin-note">Choose one provider for new checkouts and shipments. Existing AWBs continue with the courier that originally created them.</p>{data.shippingProvider === 'manual' && <p className="admin-note mt-2">No courier API credentials needed. In each confirmed order, choose self delivery or enter a courier name, real AWB and optional tracking link. You manage delivery updates; customers follow them in My Orders. Your delivery charges below still apply.</p>}</div>
     <label className="store-settings__field"><span>Active delivery provider</span><select value={data.shippingProvider} onChange={e => selectProvider(e.target.value)}>{PROVIDER_OPTIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select><small>The storefront checks the selected provider before confirming an order.</small></label>
     <div className="store-settings__wide grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{providers.filter(provider => provider.name !== 'manual').map(provider => <div key={provider.name} className={`rounded-2xl border p-4 ${provider.name === data.shippingProvider ? 'border-wine bg-rose/5' : 'border-slate-200 bg-white'}`}><div className="flex items-center justify-between gap-2"><strong>{provider.label}</strong><span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase ${providerBadge(provider).classes}`}>{providerBadge(provider).label}</span></div><p className="mt-2 text-xs leading-5 text-slate-500">{provider.note}</p><p className="mt-2 text-[11px] font-bold text-slate-500">{provider.cod ? 'COD' : 'No COD'} · {provider.reverse ? 'Returns' : 'No reverse pickup'}{provider.rateQuotes ? ' · Live rates' : ''}</p></div>)}</div>
     <div className="store-settings__tip"><div><strong>{selected?.label || 'Courier'} · {selected?.mode || 'Connection check'}</strong><p>{error || selected?.note || 'Checking backend connection...'}</p>{selected?.missing?.length > 0 && <p className="admin-note">Backend setup required: {selected.missing.join(', ')}. Credentials are never entered or returned here.</p>}<button type="button" className="admin-table-action-link" onClick={() => setReload(n => n + 1)}>Check all connections again</button></div></div>

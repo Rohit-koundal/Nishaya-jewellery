@@ -61,3 +61,21 @@ test('account mobile number accepts digits only and reports an invalid number', 
   expect(phone).toHaveValue('9876543210');
   expect(screen.queryByText('Enter a valid 10-digit mobile number starting with 6-9.')).not.toBeInTheDocument();
 });
+
+test('an existing unverified admin email can be verified without changing the address', async () => {
+  const previous = mockAuth.user;
+  mockAuth.user = { ...previous, email: 'nishaya.in1111@gmail.com', isEmailVerified: false };
+  mockAuth.verifyProfileEmailChangeOtp.mockResolvedValueOnce({ verificationToken: 'email-proof' });
+  mockAuth.updateProfile.mockResolvedValueOnce({ ...mockAuth.user, isEmailVerified: true });
+  try {
+    render(<ProfileDetails />);
+    fireEvent.click(screen.getAllByRole('button', { name: 'CHANGE' })[1]);
+    expect(screen.getByRole('button', { name: 'Send OTP' })).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('Enter OTP'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Email' }));
+    expect(await screen.findByRole('button', { name: 'Verified' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save Details' }));
+    await waitFor(() => expect(mockAuth.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ email: 'nishaya.in1111@gmail.com', emailVerificationToken: 'email-proof' })));
+    expect(await screen.findByText('Details saved successfully')).toBeInTheDocument();
+  } finally { mockAuth.user = previous; }
+});

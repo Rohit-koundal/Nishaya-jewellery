@@ -8,7 +8,7 @@ import ReviewModal from '../../components/product/ReviewModal';
 import ReturnRequestForm from '../../components/order/ReturnRequestForm';
 import { OrderItem, OrderModal, OrderShell, OrderState, StatusBadge } from '../../components/order/OrderUi';
 import { canCancelOrder, canCancelOrderItem, productIdOf } from '../../utils/orderActions';
-import { money, orderCode, orderDate, paymentLabel, paymentNote, priceLines, safeTrackingUrl } from '../../utils/orderPresentation';
+import { money, orderCode, orderDate, paymentLabel, paymentNote, priceLines } from '../../utils/orderPresentation';
 
 export default function OrderDetail({ route = '', navigate }) {
   const orderId = new URLSearchParams(route.split('?')[1] || '').get('id');
@@ -126,7 +126,6 @@ export default function OrderDetail({ route = '', navigate }) {
     finally { scope.pending = false; if (isCurrent()) setBusy(false); }
   };
   const canReview = order && ['Delivered', 'Return Requested', 'Exchange Requested', 'Returned', 'Refunded'].includes(order.orderStatus);
-  const tracking = safeTrackingUrl(order?.shipment?.trackingUrl);
   const events = [...(order?.statusTimeline || [])];
   const activeReturnEligibility = returns?.items?.find((entry) => entry.orderItemId === String(returnItem?._id));
   return <OrderShell title={order ? `Order #${orderCode(order)}` : 'Order details'} detail navigate={navigate}>
@@ -139,10 +138,8 @@ export default function OrderDetail({ route = '', navigate }) {
         <section className="sc-order-panel"><header><Truck size={20} /><h2>Order & delivery status</h2><StatusBadge status={order.orderStatus} /></header>
           {order.rto?.status && order.rto.status !== 'NONE' && <div className="sc-orders__error" role="status"><strong>Return to origin: {String(order.rto.status).replaceAll('_', ' ').toLowerCase()}</strong><p>{order.rto.reason || order.rto.notes || 'The courier is returning this parcel to the store. Refund updates will appear here when applicable.'}</p>{order.paymentMethod !== 'COD' && order.rto.refundStatus && <p>Refund: {String(order.rto.refundStatus).replaceAll('_', ' ').toLowerCase()}{order.rto.refundAmount !== undefined ? ` · ${money(order.rto.refundAmount)}` : ''}{Number(order.rto.refundDeduction || 0) > 0 ? ` after a ${money(order.rto.refundDeduction)} policy deduction` : ''}.</p>}</div>}
           <ol className="sc-order-timeline">{events.length ? events.map((entry, index) => <li key={index} className={index === events.length - 1 ? 'is-current' : ''}><span className="sc-order-timeline__dot" /><div><h3>{entry.status}</h3>{entry.date && <time>{orderDate(entry.date, true)}</time>}{entry.note && <p>{entry.note}</p>}</div></li>) : <li><span className="sc-order-timeline__dot" /><div><h3>{order.orderStatus}</h3><p>Detailed updates will appear here when available.</p></div></li>}</ol>
-          {order.shipment?.provider && order.shipment.provider !== 'manual' ? <DeliveryTracking orderId={orderId} onUpdate={data => setOrder(current => ({ ...current, ...(data.order || {}), shipment: data.shipment || current.shipment }))} /> : order.shipment && typeof order.shipment === 'object' ? <div className="sc-order-shipment"><p><strong>{order.shipment.courierName || 'Courier details pending'}</strong></p>{(order.shipment.trackingNumber || order.shipment.awb) && <p>Tracking ID: {order.shipment.trackingNumber || order.shipment.awb}</p>}
-            {tracking && <a className="sc-orders__text" href={tracking} target="_blank" rel="noopener noreferrer">Track with courier<ExternalLink size={14} /></a>}
-            {order.shipment.events?.length > 0 && <details><summary>Courier updates</summary><ol>{[...order.shipment.events].reverse().map((event, index) => <li key={index}><strong>{String(event.status || '').replaceAll('_', ' ')}</strong><p>{event.note}</p><time>{orderDate(event.date, true)}</time></li>)}</ol></details>}
-          </div> : !['Delivered', 'Cancelled', 'Returned', 'Refunded'].includes(order.orderStatus) && <p className="sc-orders__muted">Courier tracking will appear after dispatch.</p>}
+          <DeliveryTracking key={orderId} orderId={orderId} initialShipment={typeof order.shipment === 'object' ? order.shipment : null} onUpdate={data => { if (data.order) setOrder(current => ({ ...current, ...data.order, shipment: data.shipment || current.shipment })); }} />
+          {order.deliveryProof?.receivedBy && <p className="sc-orders__muted">Received by: {order.deliveryProof.receivedBy}</p>}
           <div className="sc-order-panel__actions">{canCancelOrder(order) && <button className="sc-orders__outline" disabled={busy} onClick={() => { setActionError(''); setCancelReason(''); setCancelComment(''); setCancelOpen(true); }}>Cancel order</button>}<button className="sc-orders__outline" onClick={help}><Headphones size={16} />Need help?</button></div>
         </section>
         <section className="sc-order-panel"><header><h2>Items in this order</h2><span>{order.orderItems?.reduce((sum, item) => sum + Math.max(0, Number(item.quantity || 0) - Number(item.cancelledQuantity || 0)), 0)} active items</span></header>
