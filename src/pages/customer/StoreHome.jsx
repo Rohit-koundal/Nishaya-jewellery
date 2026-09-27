@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Home from './Home';
 import PageState from '../../components/ui/PageState';
+import StorefrontSkeleton from '../../components/ui/StorefrontSkeleton';
 import { useStorefront } from '../../context/StorefrontContext';
 import { storefrontPath } from '../../utils/routing';
 
@@ -18,7 +19,7 @@ export default function StoreHome(props) {
   }, [store?.festivalCampaign?.countdownEndsAt]);
 
   if (loading) return <>
-    <section className="min-h-[70vh] bg-[#fcfaf7] md:hidden" aria-busy="true" aria-label="Opening boutique" />
+    <StorefrontSkeleton className="md:hidden" label="Opening boutique" />
     <div className="hidden md:block"><PageState loading loadingLabel="Opening boutique..." /></div>
   </>;
   if (error) return <PageState error={error} onRetry={retry} />;

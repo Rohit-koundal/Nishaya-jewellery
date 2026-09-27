@@ -5,6 +5,7 @@ import Icon from '../../components/layout/Icon';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import PageState from '../../components/ui/PageState';
+import StorefrontSkeleton from '../../components/ui/StorefrontSkeleton';
 import { getPrimaryImageUrl, normalizeImageUrl, normalizeProducts } from '../../services/normalize';
 import { samiraApi, useGetBannersQuery, useGetCategoriesQuery, useGetFeaturedReviewsQuery, useGetMobileHomeQuery, useGetProductsQuery } from '../../store/apiSlice';
 import { useWebsiteCustomization } from '../../context/WebsiteCustomizationContext';
@@ -73,13 +74,13 @@ export default function Home({ navigate, storeSlug = '', industry = 'fashion', i
     { store: storeSlug, ...(recentIds.length ? { recent: recentIds.join(',') } : {}) },
     { skip: isDesktop },
   );
-  const useLegacyMobileFeed = !isDesktop && mobileFeedQuery.isError;
+  const feedErrorStatus = mobileFeedQuery.error?.status || mobileFeedQuery.error?.originalStatus;
+  const useLegacyMobileFeed = !isDesktop && mobileFeedQuery.isError && [404, 405].includes(feedErrorStatus);
   // Keep the existing public APIs as a compatibility path while an older
   // backend deployment catches up with the combined mobile-home endpoint.
-  // These are background requests because the first feed request already owns
-  // the single page loader.
+  // A timeout/network failure must not trigger another long request waterfall.
   const mobileFallbackProductsQuery = useGetProductsQuery(
-    { store: storeSlug, silent: true },
+    { store: storeSlug, silent: true, page: 1, limit: 48 },
     { skip: !useLegacyMobileFeed },
   );
   const mobileFallbackCategoriesQuery = useGetCategoriesQuery(
@@ -93,25 +94,26 @@ export default function Home({ navigate, storeSlug = '', industry = 'fashion', i
   const desktopProductsQuery = useGetProductsQuery({ store: storeSlug }, { skip: !isDesktop });
   const desktopCategoriesQuery = useGetCategoriesQuery({ store: storeSlug }, { skip: !isDesktop });
   const desktopBannersQuery = useGetBannersQuery({ store: storeSlug }, { skip: !isDesktop });
-  const mobileFeed = mobileFeedQuery.data || {};
+  const mobileFeed = mobileFeedQuery.currentData || {};
+  const fallbackProducts = mobileFallbackProductsQuery.currentData;
   const productData = isDesktop
     ? (desktopProductsQuery.data || emptyList)
-    : useLegacyMobileFeed ? (mobileFallbackProductsQuery.data || emptyList) : (mobileFeed.products || emptyList);
+    : useLegacyMobileFeed ? (Array.isArray(fallbackProducts) ? fallbackProducts : fallbackProducts?.items || emptyList) : (mobileFeed.products || emptyList);
   const categories = isDesktop
     ? (desktopCategoriesQuery.data || emptyList)
-    : useLegacyMobileFeed ? (mobileFallbackCategoriesQuery.data || emptyList) : (mobileFeed.categories || emptyList);
+    : useLegacyMobileFeed ? (mobileFallbackCategoriesQuery.currentData || emptyList) : (mobileFeed.categories || emptyList);
   const banners = isDesktop
     ? (desktopBannersQuery.data || emptyList)
-    : useLegacyMobileFeed ? (mobileFallbackBannersQuery.data || emptyList) : (mobileFeed.banners || emptyList);
+    : useLegacyMobileFeed ? (mobileFallbackBannersQuery.currentData || emptyList) : (mobileFeed.banners || emptyList);
   const settings = mobileFeed.settings || {};
   const feedWarnings = new Set(mobileFeed.warnings || []);
+  if (useLegacyMobileFeed && mobileFallbackCategoriesQuery.isError) feedWarnings.add('categories');
+  if (useLegacyMobileFeed && mobileFallbackBannersQuery.isError) feedWarnings.add('banners');
   const productFeedWarning = (mobileFeed.warnings || []).some((warning) => String(warning).startsWith('products.'));
-  const fallbackLoading = useLegacyMobileFeed && [mobileFallbackProductsQuery, mobileFallbackCategoriesQuery, mobileFallbackBannersQuery]
-    .some((query) => query.isLoading || query.isFetching);
-  const fallbackUnavailable = useLegacyMobileFeed && [mobileFallbackProductsQuery, mobileFallbackCategoriesQuery, mobileFallbackBannersQuery]
-    .every((query) => query.isError);
-  const isLoading = isDesktop ? desktopProductsQuery.isLoading : mobileFeedQuery.isLoading || fallbackLoading;
-  const isError = isDesktop ? desktopProductsQuery.isError : fallbackUnavailable;
+  const fallbackLoading = useLegacyMobileFeed && (mobileFallbackProductsQuery.isLoading || (!fallbackProducts && mobileFallbackProductsQuery.isFetching));
+  const fallbackUnavailable = useLegacyMobileFeed && mobileFallbackProductsQuery.isError;
+  const isLoading = isDesktop ? desktopProductsQuery.isLoading : (!mobileFeedQuery.currentData && (mobileFeedQuery.isLoading || mobileFeedQuery.isFetching)) || fallbackLoading;
+  const isError = isDesktop ? desktopProductsQuery.isError : fallbackUnavailable || (mobileFeedQuery.isError && !useLegacyMobileFeed);
   const refetch = isDesktop ? desktopProductsQuery.refetch : () => {
     const requests = [mobileFeedQuery.refetch?.()];
     if (useLegacyMobileFeed) requests.push(
@@ -223,7 +225,7 @@ export default function Home({ navigate, storeSlug = '', industry = 'fashion', i
   if (isLoading && !catalog.length) {
     return isDesktop
       ? <section className="container-page py-10"><PageState loading loadingLabel="Loading the collection..." /></section>
-      : <section className="min-h-[70vh] bg-[#fcfaf7]" aria-busy="true" aria-label="Loading the collection" />;
+      : <StorefrontSkeleton />;
   }
 
   if (isError && !catalog.length) {
@@ -236,6 +238,7 @@ export default function Home({ navigate, storeSlug = '', industry = 'fashion', i
     <>
       {!isDesktop && <div className={`mobile-home flex flex-col bg-[#fcfaf7] ${mobileCustom ? 'mobile-home--custom' : ''}`}>
         {settings.acceptingOrders === false && <MobileOrderPause message={settings.orderPauseMessage} />}
+        {mobileFeedQuery.isError && !useLegacyMobileFeed && catalog.length > 0 && <MobileSectionNotice message="Showing the last loaded collection. Refresh to check the latest availability." onRetry={refetch} />}
         {productFeedWarning && <MobileSectionNotice message="Some product collections could not be refreshed." onRetry={refetch} />}
         {[
           ['hero', <MobileHero banners={heroBanners.length ? heroBanners : (promoBanner ? [promoBanner] : [])} heading={mobileSection('hero')?.heading} section={mobileCustom ? getHomepageSection(websiteConfig, 'hero') : null} navigate={navigate} industry={industry} offerLabel={maxDiscount > 0 ? `Up to ${maxDiscount}% off` : 'Fresh arrivals'} />],

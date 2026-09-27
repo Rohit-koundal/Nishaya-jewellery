@@ -5,6 +5,7 @@ import { logout, setCredentials } from './authSlice';
 import { startMobileLoader, stopMobileLoader } from '../utils/mobileLoader';
 import { getOrCreateSessionId } from '../utils/attribution';
 import { isWebsitePreview } from '../config/websiteDesigner';
+import { isStorefrontRead, STOREFRONT_READ_TIMEOUT_MS } from './storefrontRequestPolicy';
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getApiBaseUrl(),
@@ -67,13 +68,15 @@ async function baseQueryWithRefresh(args, api, extraOptions) {
   const cachedQuery = api.queryCacheKey
     ? api.getState()?.samiraApi?.queries?.[api.queryCacheKey]
     : null;
-  const silent = Boolean(typeof args === 'object' && (
+  const storefrontRead = isStorefrontRead(args);
+  const silent = storefrontRead || Boolean(typeof args === 'object' && (
     args.silent || (args.silentWhenCached && cachedQuery?.data !== undefined)
   ));
   if (typeof args === 'object') {
     const { silent: _silent, silentWhenCached: _silentWhenCached, ...requestArgs } = args;
     args = requestArgs;
   }
+  if (storefrontRead) args = { ...(typeof args === 'string' ? { url: args } : args), timeout: STOREFRONT_READ_TIMEOUT_MS };
   if (isWebsitePreview()) {
     const method = typeof args === 'string' ? 'GET' : (args.method || 'GET').toUpperCase();
     if (method !== 'GET') return { error: { status: 403, data: { message: 'Storefront preview is read-only.' } } };

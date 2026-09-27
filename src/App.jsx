@@ -17,6 +17,7 @@ import { buildWebsiteCssVariables } from './config/websiteCustomization';
 import { reelProductImportEnabled } from './config/features';
 import { clearLoginPromptDismissed, isLoginPromptDismissed, markLoginPromptDismissed } from './utils/loginPromptStorage';
 import MobileOverlayLoader from './components/ui/MobileOverlayLoader';
+import StorefrontSkeleton from './components/ui/StorefrontSkeleton';
 import MobileAppCompanion from './components/pwa/MobileAppCompanion';
 import { useAuth } from './context/AuthContext';
 import { getMobileLoaderSnapshot, subscribeMobileLoader } from './utils/mobileLoader';
@@ -476,7 +477,7 @@ function RouteFallback() {
   if (isMobileViewport) {
     return globalMobileLoading
       ? <div className="min-h-[50vh]" aria-hidden="true" />
-      : <MobileOverlayLoader />;
+      : <StorefrontSkeleton variant="page" label="Opening page" />;
   }
 
   return (

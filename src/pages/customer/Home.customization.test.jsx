@@ -12,6 +12,13 @@ let mockProduct;
 let mockMobileFeed;
 let mockMobileLoading;
 let mockMobileError;
+let mockMobileErrorStatus;
+let mockMobileFetching;
+let mockPreviousFeed;
+let mockFallbackData;
+let mockFallbackLoading;
+let mockOptionalLoading;
+let mockRefetch;
 let mockToggleWishlist;
 let mockAddToCart;
 let mockPrefetchProduct;
@@ -26,10 +33,10 @@ jest.mock('./DesktopLuxuryHome', () => {
 });
 jest.mock('../../store/apiSlice', () => ({
   samiraApi: { usePrefetch: () => mockPrefetchProduct },
-  useGetProductsQuery: () => ({ data: [mockProduct] }),
-  useGetMobileHomeQuery: () => ({ data: mockMobileFeed, isLoading: mockMobileLoading, isError: mockMobileError, refetch: jest.fn() }),
-  useGetCategoriesQuery: () => ({ data: [] }),
-  useGetBannersQuery: () => ({ data: [] }),
+  useGetProductsQuery: () => ({ data: mockFallbackData ?? [mockProduct], currentData: mockFallbackData ?? [mockProduct], isLoading: mockFallbackLoading }),
+  useGetMobileHomeQuery: () => ({ data: mockPreviousFeed || mockMobileFeed, currentData: mockMobileFeed, isLoading: mockMobileLoading, isFetching: mockMobileFetching, isError: mockMobileError, error: mockMobileError ? { status: mockMobileErrorStatus } : undefined, refetch: mockRefetch }),
+  useGetCategoriesQuery: () => ({ data: [], currentData: [], isLoading: mockOptionalLoading }),
+  useGetBannersQuery: () => ({ data: [], currentData: [], isLoading: mockOptionalLoading }),
   useGetFeaturedReviewsQuery: () => ({ data: [] }),
 }));
 
@@ -37,6 +44,13 @@ beforeEach(() => {
   mockWidth = 390;
   mockMobileLoading = false;
   mockMobileError = false;
+  mockMobileErrorStatus = 404;
+  mockMobileFetching = false;
+  mockPreviousFeed = undefined;
+  mockFallbackData = undefined;
+  mockFallbackLoading = false;
+  mockOptionalLoading = false;
+  mockRefetch = jest.fn();
   mockPrefetchProduct = jest.fn();
   mockConfig = mergeWebsiteConfig();
   mockToggleWishlist = jest.fn(() => Promise.resolve({ ok: true }));
@@ -211,12 +225,51 @@ test('mobile category rail includes every active category, including nested Sare
   categories.forEach((category) => expect(screen.getByText(category.name)).toBeInTheDocument());
 });
 
-test('mobile home loading leaves the screen loader to the global app shell', () => {
+test('mobile home shows skeleton content without a blocking overlay', () => {
   mockMobileLoading = true;
-  mockMobileFeed = {};
+  mockMobileFeed = undefined;
   const { container } = render(<Home navigate={jest.fn()} />);
   expect(screen.getByLabelText('Loading the collection')).toBeInTheDocument();
+  expect(container.querySelector('[data-storefront-skeleton="home"]')).toBeInTheDocument();
   expect(container.querySelector('[data-mobile-loader]')).toBeNull();
+});
+
+test.each(['TIMEOUT_ERROR', 'FETCH_ERROR', 500, 503])('a %s shows a retry without falling through to another slow feed', (status) => {
+  mockMobileError = true;
+  mockMobileErrorStatus = status;
+  mockMobileFeed = undefined;
+  render(<Home navigate={jest.fn()} />);
+  expect(screen.getByText('The store could not be loaded')).toBeInTheDocument();
+  expect(screen.queryByText('API product')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+  expect(mockRefetch).toHaveBeenCalledTimes(1);
+});
+
+test('legacy paginated products display without waiting for optional category and banner reads', () => {
+  mockMobileError = true;
+  mockMobileFeed = undefined;
+  mockFallbackData = { items: [mockProduct], total: 1 };
+  mockOptionalLoading = true;
+  render(<Home navigate={jest.fn()} />);
+  expect(screen.getAllByText('API product').length).toBeGreaterThan(0);
+  expect(screen.queryByLabelText('Loading the collection')).not.toBeInTheDocument();
+});
+
+test('a failed background refresh keeps the current store collection visible with a retry notice', () => {
+  mockMobileError = true;
+  mockMobileErrorStatus = 'TIMEOUT_ERROR';
+  render(<Home navigate={jest.fn()} />);
+  expect(screen.getAllByText('API product').length).toBeGreaterThan(0);
+  expect(screen.getByText(/Showing the last loaded collection/)).toBeInTheDocument();
+});
+
+test('switching store scope never shows a previous store feed during the new request', () => {
+  mockPreviousFeed = mockMobileFeed;
+  mockMobileFeed = undefined;
+  mockMobileFetching = true;
+  render(<Home navigate={jest.fn()} storeSlug="different-store" />);
+  expect(screen.queryByText('API product')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Loading the collection')).toBeInTheDocument();
 });
 
 test('mobile home uses cached public catalog APIs when the combined feed is unavailable', () => {

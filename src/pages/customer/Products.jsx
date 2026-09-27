@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ProductGrid from '../../components/product/ProductGrid';
+import StorefrontSkeleton from '../../components/ui/StorefrontSkeleton';
 import MobileFilterSheet from '../../components/product/MobileFilterSheet';
 import Icon from '../../components/layout/Icon';
 import DesktopNewArrivalsLayout from './DesktopNewArrivalsLayout';
@@ -272,7 +273,7 @@ export default function Products({ navigate, route = '/products' }) {
       {appliedMobileFilters.length ? <div className="hide-scrollbar mt-2 flex gap-2 overflow-x-auto" aria-label="Applied filters">{appliedMobileFilters.map((item) => <button key={`${item.key}-${item.value}`} type="button" onClick={() => removeMobileFilter(item, filters, updateParams)} className="inline-flex min-w-max items-center gap-1 rounded-full bg-[#fff1f5] px-3 py-1.5 text-[10px] font-bold text-wine" aria-label={`Remove ${item.label} filter`}>{item.label}<span aria-hidden="true">×</span></button>)}</div> : null}
       </div>
       <div className="lg:hidden">
-        {error && page === 1 ? <div className="rounded-2xl bg-white p-8 text-center font-bold text-rose"><p>Store data service is temporarily unavailable.</p><button type="button" className="mt-4 h-11 rounded-xl bg-wine px-5 text-sm font-black text-white" onClick={refetch}>Try again</button></div> : loading ? null : <ProductGrid products={visibleProducts} navigate={navigate} onBeforeProductOpen={rememberCatalogPosition} priorityCount={4} />}
+        {error && page === 1 ? <div className="rounded-2xl bg-white p-8 text-center font-bold text-rose"><p>Store data service is temporarily unavailable.</p><button type="button" className="mt-4 h-11 rounded-xl bg-wine px-5 text-sm font-black text-white" onClick={refetch}>Try again</button></div> : loading ? <StorefrontSkeleton variant="catalog" label="Loading products" /> : <ProductGrid products={visibleProducts} navigate={navigate} onBeforeProductOpen={rememberCatalogPosition} priorityCount={4} />}
         {!loading && !error && <CatalogLoadMore ref={mobileLoadMoreRef} hasMore={hasMore} loading={loadingMore} shown={catalog.length} total={totalProducts} onLoadMore={() => setPage((current) => Math.min(totalPages, current + 1))} />}
         {error && page > 1 ? <div className="mt-5 rounded-xl bg-red-50 p-4 text-center text-xs font-semibold text-red-700"><p>More products could not be loaded.</p><button type="button" onClick={refetch} className="mt-2 rounded-lg bg-white px-4 py-2 text-wine">Try again</button></div> : null}
       </div>

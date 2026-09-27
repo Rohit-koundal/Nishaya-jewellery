@@ -139,18 +139,18 @@ test('storefront transport options share one Redux cache entry while account sco
   expect(mockRawQuery).toHaveBeenCalledTimes(2);
 });
 
-test('mobile home feed uses the shared global loader and keeps store scope explicit', async () => {
+test('mobile home feed is non-blocking, time-bounded and keeps store scope explicit', async () => {
   mockRawQuery.mockResolvedValue({ data: { products: [], categories: [], banners: [] } });
   await testStore.dispatch(samiraApi.endpoints.getMobileHome.initiate({ store: 'boutique-a' }, { subscribe: false }));
-  expect(mockRawQuery.mock.calls[0][0]).toEqual({ url: '/storefront/home', params: { store: 'boutique-a' } });
-  expect(startMobileLoader).toHaveBeenCalledTimes(1);
+  expect(mockRawQuery.mock.calls[0][0]).toEqual({ url: '/storefront/home', params: { store: 'boutique-a' }, timeout: 15000 });
+  expect(startMobileLoader).not.toHaveBeenCalled();
 });
 
 test('a cached mobile home refresh stays in Redux without reopening the blocking loader', async () => {
   mockRawQuery.mockResolvedValue({ data: { products: [], categories: [], banners: [] } });
   const subscription = testStore.dispatch(samiraApi.endpoints.getMobileHome.initiate({ store: 'boutique-a' }));
   await subscription.unwrap();
-  expect(startMobileLoader).toHaveBeenCalledTimes(1);
+  expect(startMobileLoader).not.toHaveBeenCalled();
 
   jest.clearAllMocks();
   testStore.dispatch(samiraApi.util.invalidateTags(['Products']));
@@ -178,8 +178,27 @@ test('product detail, categories and banners carry their own explicit store scop
   await testStore.dispatch(samiraApi.endpoints.getCategories.initiate({ store: 'boutique' }, { subscribe: false }));
   await testStore.dispatch(samiraApi.endpoints.getBanners.initiate({ store: 'boutique' }, { subscribe: false }));
   expect(mockRawQuery.mock.calls.map(([args]) => args)).toEqual([
-    { url: '/products/item', params: { store: 'boutique' } },
-    { url: '/categories', params: { store: 'boutique' } },
-    { url: '/banners', params: { store: 'boutique' } },
+    { url: '/products/item', params: { store: 'boutique' }, timeout: 15000 },
+    { url: '/categories', params: { store: 'boutique' }, timeout: 15000 },
+    { url: '/banners', params: { store: 'boutique' }, timeout: 15000 },
   ]);
+});
+
+test('a slow storefront read never blocks another page and a timeout preserves the account', async () => {
+  const pending = defer();
+  mockRawQuery.mockReturnValue(pending.promise);
+  const reading = request('/website-config');
+  await waitFor(() => expect(mockRawQuery).toHaveBeenCalledTimes(1));
+  expect(startMobileLoader).not.toHaveBeenCalled();
+  pending.resolve({ error: { status: 'TIMEOUT_ERROR', error: 'Timed out' } });
+  expect((await reading).error.status).toBe('TIMEOUT_ERROR');
+  expect(testStore.getState().auth.token).toBe(original.token);
+  expect(mockRawQuery).toHaveBeenCalledTimes(1);
+});
+
+test.each(['/auth/verify-otp', '/cart', '/orders', '/payments/create-order', '/admin/categories'])('actions on %s keep the overlay and are not given the browsing timeout', async path => {
+  mockRawQuery.mockResolvedValue({ data: { success: true } });
+  await testStore.dispatch(samiraApi.endpoints.mutate.initiate({ path, body: {} }));
+  expect(startMobileLoader).toHaveBeenCalledTimes(1);
+  expect(mockRawQuery.mock.calls[0][0].timeout).toBeUndefined();
 });
