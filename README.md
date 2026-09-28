@@ -19,6 +19,8 @@ This package has one unique, revocable installation identity. Open `client-insta
 
 Each client can select Twilio, MSG91, 2Factor or Fast2SMS using backend configuration. See [OTP provider setup](docs/otp-providers.md) for credentials, compatibility and safe readiness checks. Existing Twilio `SMS_*` variables continue to work.
 
+**2Factor now uses transactional SMS only.** The old OTP API branch is removed. Before deploying to a 2Factor installation, supply an approved sender and message template; an API key alone no longer enables sending. See [2Factor SMS-only setup and deployment checks](backend/TWOFACTOR_SMS_DELIVERY.md).
+
 ## Phone app experience
 
 The responsive storefront is also an installable Progressive Web App. It includes mobile navigation, product search and filters, product detail and sharing, bag, wishlist, address and payment checkout, orders and tracking, returns, profile, notifications, offline/update status, safe-area layout and home-screen shortcuts. The same backend remains the source of truth for identity, price, stock, coupons, payment and order state.
