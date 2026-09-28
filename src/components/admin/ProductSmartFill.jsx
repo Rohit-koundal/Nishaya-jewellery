@@ -8,7 +8,8 @@ import './ProductSmartFill.css';
 export default function ProductSmartFill({ form, categories, structure, onApply, apiPrefix = '/admin', priceField = 'price', seo = true, disabled = false }) {
   const uid = useId();
   const [open, setOpen] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(() => form.supplierNotes || '');
+  const [copyPreferences, setCopyPreferences] = useState(() => form.smartFill?.copyPreferences || { language: 'English', tone: 'Clear and informative' });
   const [selection, setSelection] = useState(null);
   const [status, setStatus] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -21,7 +22,7 @@ export default function ProductSmartFill({ form, categories, structure, onApply,
   const request = useRef(null);
   const photos = smartPhotos(form);
   const chosen = (selection ?? photos.slice(0, 3)).filter(url => photos.includes(url)).slice(0, 3);
-  const inputs = JSON.stringify({ notes, photos: chosen });
+  const inputs = JSON.stringify({ notes, photos: chosen, copyPreferences });
   const stale = preview && preview.inputs !== inputs;
 
   useEffect(() => () => request.current?.abort(), []);
@@ -40,7 +41,7 @@ export default function ProductSmartFill({ form, categories, structure, onApply,
     setBusy(true); setError(''); setNotice(''); setPreview(null); setReplace(false);
     const baseline = snapshotForm(form);
     try {
-      const result = await api.post(`${apiPrefix}/products/smart-fill`, smartRequest(baseline, notes, chosen), { silent: true, signal: controller.signal });
+      const result = await api.post(`${apiPrefix}/products/smart-fill`, { ...smartRequest(baseline, notes, chosen), copyPreferences }, { silent: true, signal: controller.signal });
       if (controller.signal.aborted) return;
       const rows = suggestionRows(result, baseline, { categories, structure, priceField, seo });
       setPreview({ rows, warnings: result.warnings || [], mode: result.mode, inputs });
@@ -77,7 +78,8 @@ export default function ProductSmartFill({ form, categories, structure, onApply,
         </button>)}</div>
       </div>}
       <label className="product-smart-fill__label" htmlFor={uid + '-notes'}>Supplier notes or product details</label>
-      <textarea id={uid + '-notes'} rows={4} maxLength={7000} value={notes} disabled={busy || disabled} onChange={event => setNotes(event.target.value)} placeholder={'Paste details in English, Hindi or Hinglish. For example:\nName: Wine embroidered saree\nFabric: Georgette\nSelling price: Rs 1299\nMRP: Rs 1999'} />
+      <details><summary>Content language & tone</summary>{['language', 'tone'].map(key => <label className="product-smart-fill__label" key={key}>Content {key}<input value={copyPreferences[key] || ''} maxLength={120} disabled={busy || disabled} onChange={event => setCopyPreferences(current => ({ ...current, [key]: event.target.value }))} /></label>)}</details>
+      <textarea id={uid + '-notes'} rows={4} maxLength={7000} value={notes} disabled={busy || disabled} onChange={event => setNotes(event.target.value)} placeholder={'Paste verified details in English, Hindi or Hinglish. For example:\nName: Clover earrings\nMetal type: Brass\nSelling price: Rs 299\nMRP: Rs 599'} />
       <p className="product-smart-fill__hint">{status?.enabled === false ? 'Photo AI is not configured. You can still fill explicitly stated details from notes.' : 'Uses your selected photos and details already entered. Add photos in the product photo section.'} Stock stays manual. Price and available sizes are suggested only when stated.</p>
       <div className="product-smart-fill__actions">
         <button type="button" className="admin-btn" disabled={busy || disabled} onClick={analyze}>{busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}{busy ? 'Reading product details…' : 'Suggest details'}</button>

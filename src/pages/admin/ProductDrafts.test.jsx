@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import ProductDrafts from './ProductDrafts';
+import ProductDrafts, { normalizeDraftBody } from './ProductDrafts';
 import api from '../../services/api';
 
 jest.mock('../../services/api', () => ({ get: jest.fn(), post: jest.fn(), upload: jest.fn() }));
@@ -117,4 +117,34 @@ test('load errors keep retry available', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
   expect(mockQuery.refetch).toHaveBeenCalledTimes(1);
   await screen.findByText('Rose saree');
+});
+
+test('draft Smart Fill preview survives section switches and preserves paragraphs, highlights and SEO', async () => {
+  mockQuery.data.data = [{ ...draft, name: '', highlights: [], description: '' }];
+  api.post.mockResolvedValue({ mode: 'ai', suggestion: { name: 'Clover earrings', description: 'A clover-shaped outline.\n\nStyle it with a simple neckline.', shortDescription: 'A gold-tone clover outline.', highlights: ['Gold-tone, polished outline'], tags: ['clover'] }, fieldSources: {} });
+  render(<ProductDrafts />);
+  fireEvent.click((await screen.findAllByRole('button', { name: 'Review' }))[0]);
+  fireEvent.click(screen.getByRole('button', { name: /Smart fill/i }));
+  fireEvent.click(screen.getByRole('button', { name: 'Suggest details' }));
+  await screen.findByText('Review suggestions');
+  fireEvent.click(screen.getByRole('button', { name: 'Content & SEO' }));
+  expect(screen.getByText('Review suggestions')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /Apply \d+ selected details?/ }));
+  expect(screen.getByLabelText('Full description')).toHaveValue('A clover-shaped outline.\n\nStyle it with a simple neckline.');
+  expect(screen.getByLabelText('Highlights')).toHaveValue('Gold-tone, polished outline');
+  fireEvent.click(screen.getByRole('button', { name: /Save draft/i }));
+  await waitFor(() => expect(mockSave).toHaveBeenCalledWith(expect.objectContaining({ body: expect.objectContaining({ highlights: ['Gold-tone, polished outline'], metaTitle: 'Clover earrings', metaKeywords: 'clover' }) })));
+});
+
+test('draft normalization does not delete jewellery variants when apparel sizing is disabled', () => {
+  const variants = [{ optionValues: { ring_size: '7' }, sku: 'R7', stock: 3 }];
+  expect(normalizeDraftBody({ ...draft, variants }, [], { features: { sizing: false } }).variants).toEqual([expect.objectContaining(variants[0])]);
+});
+
+test('draft saves keep unknown stock and MRP pending rather than manufacturing commercial facts', () => {
+  for (const stock of [undefined, null, '', ' ']) {
+    const body = normalizeDraftBody({ ...draft, stock, originalPrice: '' });
+    expect(body.stock).toBeNull(); expect(body.originalPrice).toBe(0);
+  }
+  expect(normalizeDraftBody({ ...draft, stock: 0 }).stock).toBe(0);
 });

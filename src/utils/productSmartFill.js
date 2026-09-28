@@ -1,8 +1,11 @@
+import { getActiveAttributeDefinitions } from './productAttributes';
+
 export const SMART_FIELDS = {
   name: 'Product name', sku: 'SKU (generated product code)', category: 'Category', subCategory: 'Subcategory', shortDescription: 'Short description',
   description: 'Description', price: 'Selling price', originalPrice: 'Original price / MRP', colors: 'Colours', fabric: 'Fabric',
   occasion: 'Occasion', tags: 'Tags', highlights: 'Highlights', sizes: 'Available sizes', sizingMode: 'Sizing',
   metaTitle: 'SEO title', metaDescription: 'SEO description', metaKeywords: 'SEO keywords',
+  brand: 'Brand', careInstructions: 'Care instructions', returnPolicy: 'Return policy', countryOfOrigin: 'Country of origin', manufacturerDetails: 'Manufacturer details', warranty: 'Warranty',
 };
 export const sameValue = (a, b) => JSON.stringify(a ?? '') === JSON.stringify(b ?? '');
 const id = value => value?._id || value || '';
@@ -22,11 +25,11 @@ const empty = (value, key) => value === undefined || value === null || value ===
 export const snapshotForm = form => JSON.parse(JSON.stringify(form));
 
 export function smartPhotos(form) {
-  return [...new Set([form.image, ...(form.images || []).map(image => typeof image === 'string' ? image : image?.url)].filter(value => typeof value === 'string' && value && !/placeholder/i.test(value)))].slice(0, 12);
+  return [...new Set([...(form.images || []).filter(image => image?.primary).map(image => image.url), ...(form.images || []).map(image => typeof image === 'string' ? image : image?.url), form.image].filter(value => typeof value === 'string' && value && !/placeholder/i.test(value)))].slice(0, 12);
 }
 
 export function smartRequest(form, notes, imageUrls) {
-  const fields = ['name', 'category', 'subCategory', 'fabric', 'colors', 'sizes', 'occasion', 'description', 'attributeValues'];
+  const fields = ['name', 'category', 'subCategory', 'fabric', 'colors', 'sizes', 'occasion', 'description', 'shortDescription', 'highlights', 'attributeValues', 'brand', 'careInstructions', 'returnPolicy', 'countryOfOrigin', 'manufacturerDetails', 'warranty'];
   return { notes, imageUrls, existing: Object.fromEntries(fields.map(key => [key, key === 'category' ? id(form.category) : form[key]])) };
 }
 
@@ -57,7 +60,7 @@ export function suggestionRows(result, baseline, { categories = [], structure, p
     if (sameValue(before, value)) continue;
     rows.push({ key, field, label, value, before, empty: empty(before, key), evidence: result.fieldSources?.[field], categoryBefore: id(baseline.category), ...(key === 'category' ? { subCategoryBefore: baseline.subCategory } : {}) });
   }
-  for (const attribute of structure?.attributes || []) {
+  for (const attribute of getActiveAttributeDefinitions(structure, categories, { ...baseline, category: data.category || baseline.category, subCategory: data.subCategory || baseline.subCategory })) {
     const value = data.attributeValues?.[attribute.key];
     const key = 'attributeValues.' + attribute.key;
     if (typeof value !== 'string' || !value.trim()) continue;

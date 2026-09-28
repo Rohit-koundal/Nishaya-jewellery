@@ -4,6 +4,7 @@ import api from '../../services/api';
 import ImageUploader from './ImageUploader';
 import VideoUploader from './VideoUploader';
 import ProductSmartFill from './ProductSmartFill';
+import DynamicAttributeField from './DynamicAttributeField';
 import ProductPreviewModal from './ProductPreviewModal';
 import BarcodeScanner from './BarcodeScanner';
 import { applySmartPatch } from '../../utils/productSmartFill';
@@ -14,7 +15,7 @@ import {
 } from '../../utils/productAssistant';
 import { fetchCategories, fetchSubcategories } from '../../utils/catalogOptions';
 import CategoryPicker from './CategoryPicker';
-import { categoryPath } from '../../utils/categoryHierarchy';
+import { getActiveAttributeDefinitions, findCategoryDefinition, definitionKey } from '../../utils/productAttributes';
 import { buildVariantMatrix, hasManagedVariants } from '../../utils/variants';
 import {
   buildSizeChartPayload,
@@ -1085,7 +1086,7 @@ export default function ProductForm({
       </Section></details> : null}
 
       {viewMode === 'advanced' && <Section step="06" title="Highlights, Policy and SEO" note="Storefront extras and catalog flags.">
-        <Input label="Highlights" value={form.highlights.join(', ')} onChange={(value) => update('highlights', splitList(value))} placeholder="Premium fabric, Easy wash care" />
+        <label className="admin-field"><span>Highlights (one per line)</span><textarea className="admin-field__control" value={form.highlights.join('\n')} onChange={event => update('highlights', event.target.value.split('\n'))} placeholder="Distinctive design details, one per line" /></label>
         <Input label="Return Policy" value={form.returnPolicy} onChange={(value) => update('returnPolicy', value)} placeholder="7 days return/exchange" />
         <div className="admin-form-hint lg:col-span-2">
           <div><h3>Returns and exchanges</h3><p>These rules are copied into each order when it is placed, so later policy edits do not change an existing customer purchase.</p></div>
@@ -1337,68 +1338,6 @@ function Input({ field, label, value, onChange, placeholder, type = 'text', requ
   );
 }
 
-function DynamicAttributeField({ attribute, value, onChange }) {
-  const label = (
-    <span>
-      {attribute.label}{attribute.unit ? ` (${attribute.unit})` : ''}{attribute.required ? <em>*</em> : null}
-    </span>
-  );
-  const common = {
-    value: value ?? '',
-    required: Boolean(attribute.required),
-    onChange: (event) => onChange(event.target.value),
-    'data-required-attribute': attribute.required && !String(value ?? '').trim() ? attribute.key : undefined,
-    className: 'admin-field__control',
-  };
-
-  if (attribute.type === 'boolean') {
-    return <label className="admin-field">{label}<select {...common}><option value="">Choose</option><option value="Yes">Yes</option><option value="No">No</option></select></label>;
-  }
-  if (attribute.type === 'dropdown') {
-    return <label className="admin-field">{label}<select {...common}><option value="">Choose {attribute.label.toLowerCase()}</option>{(attribute.options || []).map((option) => <option key={option} value={option}>{option}</option>)}</select></label>;
-  }
-  if (attribute.type === 'multi_select') {
-    const selected = new Set(splitList(value));
-    if (attribute.options?.length) {
-      return (
-        <fieldset className="admin-field" data-required-attribute={attribute.required && !String(value ?? '').trim() ? attribute.key : undefined} tabIndex={attribute.required ? -1 : undefined}>
-          <legend>{label}</legend>
-          <div className="flex flex-wrap gap-2 rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white p-3">
-            {attribute.options.map((option) => (
-              <label key={option} className={`admin-flag ${selected.has(option) ? 'is-on' : ''}`}>
-                <input type="checkbox" checked={selected.has(option)} onChange={() => {
-                  const next = new Set(selected);
-                  if (next.has(option)) next.delete(option); else next.add(option);
-                  onChange(Array.from(next).join(', '));
-                }} />
-                {option}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      );
-    }
-    return <label className="admin-field">{label}<input {...common} placeholder="Enter comma-separated values" /></label>;
-  }
-  if (attribute.type === 'textarea') {
-    return <label className="admin-field lg:col-span-2">{label}<textarea {...common} rows={4} /></label>;
-  }
-  const numeric = ['number', 'measurement', 'range'].includes(attribute.type);
-  return (
-    <label className="admin-field">
-      {label}
-      <input
-        {...common}
-        type={attribute.type === 'date' ? 'date' : attribute.type === 'color' ? 'text' : numeric ? 'number' : 'text'}
-        min={numeric ? attribute.validation?.min : undefined}
-        max={numeric ? attribute.validation?.max : undefined}
-        minLength={!numeric ? attribute.validation?.minLength : undefined}
-        maxLength={!numeric ? attribute.validation?.maxLength : undefined}
-        placeholder={attribute.type === 'color' ? 'Example: Midnight Blue or #14213d' : ''}
-      />
-    </label>
-  );
-}
 
 function DynamicVariantEditor({ variantConfiguration, attributes, form, setForm, onUpdateVariant }) {
   const variantKeys = variantConfiguration?.attributes || [];
@@ -1495,21 +1434,6 @@ function variantCode(variant = {}, index = 0) {
   return code || String(index + 1).padStart(2, '0');
 }
 
-function getActiveAttributeDefinitions(structure, categories = [], form = {}) {
-  const categoryDefinition = findCategoryDefinition(structure, categories, form);
-  const merged = new Map((structure?.attributes || []).map((item) => [item.key, item]));
-  const chain = [];
-  let cursor = categoryDefinition;
-  while (cursor && chain.length < 12) {
-    chain.unshift(cursor);
-    const parentKey = cursor.parentKey;
-    cursor = parentKey ? (structure?.categoryDefinitions || []).find((item) => item.key === parentKey) : null;
-  }
-  chain.forEach((layer) => (layer.attributes || []).forEach((item) => {
-    if (typeof item === 'object' && item.key) merged.set(item.key, { ...(merged.get(item.key) || {}), ...item });
-  }));
-  return Array.from(merged.values()).filter((item) => item.active !== false).sort((left, right) => Number(left.sortOrder || 0) - Number(right.sortOrder || 0));
-}
 
 function getEffectiveVariantConfig(structure, categories = [], form = {}) {
   const attributes = getActiveAttributeDefinitions(structure, categories, form);
@@ -1527,27 +1451,6 @@ function getEffectiveVariantConfig(structure, categories = [], form = {}) {
   return { ...(structure?.variantConfig || {}), enabled: selected.length > 0, attributes: selected };
 }
 
-function findCategoryDefinition(structure, categories = [], form = {}) {
-  const definitions = structure?.categoryDefinitions || [];
-  const selectedCategory = categories.find((category) => String(category._id) === String(form.category));
-  const subcategory = String(form.subCategory || '').trim().toLowerCase();
-  if (selectedCategory?.parent) {
-    for (const node of categoryPath(selectedCategory, categories).reverse()) {
-      const match = definitions.find((item) => item.key === node.definitionKey || item.key === definitionKey(node.name));
-      if (match) return match;
-    }
-  }
-  if (subcategory) {
-    const child = definitions.find((item) => item.key === definitionKey(subcategory) || String(item.name || '').trim().toLowerCase() === subcategory);
-    if (child) return child;
-  }
-  const lookupKeys = [form.categoryDefinitionKey, selectedCategory?.definitionKey, definitionKey(selectedCategory?.name)].filter(Boolean);
-  for (const lookupKey of lookupKeys) {
-    const match = definitions.find((item) => item.key === lookupKey);
-    if (match) return match;
-  }
-  return null;
-}
 
 function getConfiguredSubcategories(structure, categories = [], form = {}, saved = []) {
   const selectedCategory = categories.find((category) => String(category._id) === String(form.category));
@@ -1607,9 +1510,6 @@ function formatVariantOptions(values = {}) {
   return Object.values(values || {}).filter(Boolean).join(' · ') || 'Variant';
 }
 
-function definitionKey(value = '') {
-  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-}
 
 function splitList(value) {
   return String(value || '').split(',').map((item) => item.trim()).filter(Boolean);

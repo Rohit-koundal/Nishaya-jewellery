@@ -192,3 +192,23 @@
   .draft-filters { grid-template-columns: 1fr; }
   .draft-check-grid { grid-template-columns: 1fr; }
 }
+.draft-smart-batch { padding: 1.2rem; display: grid; gap: 1rem; }
+.draft-smart-batch p, .draft-photo-groups p { font-size: .85rem; line-height: 1.6; }
+.draft-smart-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.draft-smart-actions label, .draft-smart-copy { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; font-size: .85rem; }
+.draft-smart-batch select, .draft-smart-batch input:not([type=checkbox]), .draft-smart-batch textarea, .draft-photo-groups select, .draft-photo-groups input { max-width: 100%; border: 1px solid #ded6d0; background: white; border-radius: .6rem; padding: .6rem; color: inherit; }
+.draft-smart-batch fieldset { min-width: 0; }
+.draft-smart-batch summary { cursor: pointer; font-weight: 650; padding: .6rem 0; }
+.draft-smart-batch progress { width: 100%; accent-color: var(--app-primary, #72233c); }
+.draft-smart-results, .draft-photo-groups { display: grid; gap: 1rem; }
+.draft-smart-result, .draft-photo-group { border: 1px solid #e6ded7; border-radius: .9rem; padding: 1rem; display: grid; gap: .75rem; min-width: 0; }
+.draft-smart-result__heading { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.draft-smart-result__heading > div { flex: 1; min-width: 9rem; }
+.draft-smart-result__heading img { width: 4.5rem; height: 4.5rem; object-fit: contain; border-radius: .5rem; }
+.draft-smart-description { white-space: pre-wrap; }
+.draft-group-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .75rem; }
+.draft-group-photos figure { display: grid; gap: .4rem; min-width: 0; margin: 0; }
+.draft-group-photos img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #faf8f5; border-radius: .6rem; }
+.draft-group-photos figcaption { overflow-wrap: anywhere; font-size: .75rem; }
+.draft-group-photos button { border: 1px solid #ded6d0; border-radius: .4rem; padding: .35rem; }
+.draft-editor__smart { padding: .5rem 1.2rem; max-height: 45vh; overflow: auto; flex-shrink: 0; }

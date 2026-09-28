@@ -275,7 +275,7 @@ export const samiraApi = createApi({
       providesTags: ['AdminCategories'],
     }),
     bulkUploadProductDrafts: builder.mutation({
-      async queryFn({ files, groupMode = 'separate', apiPrefix = '/admin' }, api, extraOptions, baseQuery) {
+      async queryFn({ files, groupMode = 'separate', groups, apiPrefix = '/admin' }, api, extraOptions, baseQuery) {
         const preparedFiles = [];
         for (const file of Array.from(files || [])) {
           if (!file) continue;
@@ -295,6 +295,7 @@ export const samiraApi = createApi({
         const formData = new FormData();
         preparedFiles.forEach((file) => formData.append('images', file));
         formData.append('groupMode', groupMode === 'single' ? 'single' : 'separate');
+        if (groups) formData.append('groups', JSON.stringify(groups));
         const prefix = apiPrefix === '/seller' ? '/seller' : '/admin';
         const result = await baseQuery({ url: `${prefix}/product-drafts/bulk-upload`, method: 'POST', body: formData }, api, extraOptions);
         if (result.error) return { error: result.error };

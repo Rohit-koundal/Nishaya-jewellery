@@ -3,7 +3,7 @@ import { flattenCategories, categoryLabel } from '../../utils/categoryHierarchy'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive, ArchiveRestore, Check, ChevronLeft, ChevronRight, CopyPlus, Eye,
-  FilePenLine, Filter, ImagePlus, PackageCheck, RefreshCw, Search, Trash2, Upload, X,
+  FilePenLine, Filter, ImagePlus, PackageCheck, RefreshCw, Search, Trash2, X,
 } from 'lucide-react';
 import api from '../../services/api';
 import { Select, TextArea, TextInput } from '../../components/ui/Field';
@@ -11,6 +11,10 @@ import PageHeader from '../../components/admin/PageHeader';
 import EmptyState from '../../components/admin/EmptyState';
 import Loader from '../../components/admin/Loader';
 import ProductSmartFill from '../../components/admin/ProductSmartFill';
+import DraftPhotoUpload from '../../components/admin/DraftPhotoUpload';
+import DynamicAttributeField from '../../components/admin/DynamicAttributeField';
+import { getActiveAttributeDefinitions } from '../../utils/productAttributes';
+import DraftBatchSmartFill from '../../components/admin/DraftBatchSmartFill';
 import ProductPreviewModal from '../../components/admin/ProductPreviewModal';
 import ImageUploader from '../../components/admin/ImageUploader';
 import VideoUploader from '../../components/admin/VideoUploader';
@@ -45,7 +49,9 @@ export default function ProductDrafts({ route = '/admin/product-drafts' }) {
   const [message, setMessage] = useState('');
   const [selected, setSelected] = useState([]);
   const [files, setFiles] = useState([]);
-  const [groupMode, setGroupMode] = useState('single');
+  const [batch, setBatch] = useState(null);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchDirty, setBatchDirty] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [searchValue, setSearchValue] = useState('');
@@ -63,6 +69,7 @@ export default function ProductDrafts({ route = '/admin/product-drafts' }) {
   const [publishing, setPublishing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const publishingRef = useRef(false);
+  const uploadingRef = useRef(false);
   const { notify } = useDesktopFeedback();
 
   const loadStructure = useCallback(() => api.get('/catalog-configuration')
@@ -115,26 +122,37 @@ export default function ProductDrafts({ route = '/admin/product-drafts' }) {
     else setMessage('');
   }, [notify]);
 
-  const onUpload = async () => {
+  const onUpload = async ({ groups, autoFill } = {}) => {
+    if (uploadingRef.current || batchBusy || batchDirty) return;
     if (!files.length) return showFeedback('Choose one or more product photos first.', 'warning');
+    uploadingRef.current = true;
     try {
-      const result = await bulkUploadProductDrafts({ files, groupMode, apiPrefix }).unwrap();
-      const created = result?.data?.drafts?.length || (groupMode === 'single' ? 1 : files.length);
+      const result = await bulkUploadProductDrafts({ files, groups, apiPrefix }).unwrap();
+      const created = result?.data?.drafts?.length || 0;
       setFiles([]); setUploadOpen(false); setPage(1);
+      if (created) setBatch({ key: Date.now(), drafts: result.data.drafts, autoStart: autoFill });
       showFeedback(`${created} product draft${created === 1 ? '' : 's'} created.`, 'success');
     } catch (error) { showFeedback(error.data?.message || error.message || 'Draft upload failed.', 'error'); }
+    finally { uploadingRef.current = false; }
   };
 
   const saveDraft = useCallback(async (form, { silent = false } = {}) => {
     try {
       const response = await updateProductDraft({ id: draftId(form), body: { ...normalizeDraftBody(form, categories, structure), saveMode: silent ? 'auto' : 'manual' }, apiPrefix }).unwrap();
       if (!silent) showFeedback('Draft saved successfully.', 'success');
-      return response?.data || response;
+      const saved = response?.data || response;
+      setBatch(current => current ? { ...current, drafts: current.drafts.map(item => draftId(item) === draftId(saved) ? saved : item) } : current);
+      return saved;
     } catch (error) {
       if (!silent || error?.data?.code === 'DRAFT_STALE') showFeedback(error.data?.message || error.message || 'Draft could not be saved.', 'error');
       throw error;
     }
   }, [apiPrefix, categories, showFeedback, structure, updateProductDraft]);
+
+  const saveBatchDraft = async (id, body) => {
+    const response = await updateProductDraft({ id, body, apiPrefix }).unwrap();
+    return response?.data || response;
+  };
 
   const archiveOne = async (draft) => {
     if (actionBusy) return;
@@ -224,13 +242,14 @@ export default function ProductDrafts({ route = '/admin/product-drafts' }) {
   return <section className="product-drafts-page">
     <PageHeader title="Product Drafts" note="Prepare, review and publish catalog products from one focused workspace.">
       <a href={`${apiPrefix}/social-import`} className="admin-btn-ghost">Import social link</a>
-      <button type="button" className="admin-btn" onClick={() => setUploadOpen((value) => !value)}><ImagePlus size={16} />Create from photos</button>
+      <button type="button" className="admin-btn" disabled={batchBusy || batchDirty} onClick={() => setUploadOpen((value) => !value)}><ImagePlus size={16} />Create from photos</button>
     </PageHeader>
     {focusedDraftId && <p className="admin-note">Opened from an import. <a className="text-wine underline" href={`${apiPrefix}/product-drafts`}>Return to all drafts</a></p>}
     {(structureError || categoryError) && <div role="alert" className="draft-alert is-error"><span>{structureError || categoryError}</span><button type="button" onClick={() => { loadStructure(); loadCategories(); }}>Retry</button></div>}
     {listError && <div role="alert" className="draft-alert is-error"><span>{listError.data?.message || listError.message || 'Drafts could not be loaded.'}</span><button type="button" onClick={refetch}>Retry</button></div>}
     {message && <p role="status" className="draft-alert">{message}</p>}
-    {uploadOpen && <UploadPanel files={files} setFiles={setFiles} groupMode={groupMode} setGroupMode={setGroupMode} uploading={uploading} onUpload={onUpload} onClose={() => { setUploadOpen(false); setFiles([]); }} />}
+    {uploadOpen && <DraftPhotoUpload files={files} setFiles={setFiles} uploading={uploading} onUpload={onUpload} onClose={() => { setUploadOpen(false); setFiles([]); }} />}
+    {batch && <DraftBatchSmartFill key={batch.key} drafts={batch.drafts} autoStart={batch.autoStart} categories={categories} structure={structure} apiPrefix={apiPrefix} onSave={saveBatchDraft} onReview={setEditorDraft} onPublish={publishIds} onClose={() => { setBatch(null); refetch(); }} onRunningChange={setBatchBusy} onDirtyChange={setBatchDirty} />}
 
     <div className="draft-summary-grid" aria-label="Draft summary">
       <SummaryButton label="All active" value={Number(summary.draft || 0) + Number(summary.published || 0)} active={status === 'active' && !readiness} onClick={() => chooseSummary('', 'active')} />
@@ -246,9 +265,10 @@ export default function ProductDrafts({ route = '/admin/product-drafts' }) {
       <div className="draft-filters"><Filter size={16} /><Select value={sourceType} onChange={(event) => { setSourceType(event.target.value); setPage(1); }} aria-label="Filter by draft source"><option value="">All sources</option><option value="manual">Manual / upload</option><option value="social-import">Social import</option><option value="reel-import">Reel import</option></Select><Select value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} aria-label="Filter by category"><option value="">All categories</option>{flattenCategories(categories).map((item) => <option key={item._id} value={item._id}>{categoryLabel(item, categories) || item.name}</option>)}</Select><Select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }} aria-label="Sort drafts"><option value="updated">Recently updated</option><option value="oldest">Oldest first</option><option value="name">Product name</option></Select><button type="button" onClick={refetch} className="admin-btn-ghost" disabled={isFetching}><RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />Refresh</button></div>
     </div>
 
-    {!!selected.length && <div className="draft-bulk-bar"><strong>{selected.length} selected</strong><div><Select value={bulkCategory} onChange={(event) => setBulkCategory(event.target.value)} aria-label="Category for selected drafts"><option value="">Assign category...</option>{flattenCategories(categories).map((item) => <option key={item._id} value={item._id}>{categoryLabel(item, categories) || item.name}</option>)}</Select><button type="button" className="admin-btn-ghost" disabled={!bulkCategory || actionBusy} onClick={applyBulkCategory}><Check size={15} />Apply</button></div><button type="button" className="admin-btn-ghost" disabled={actionBusy} onClick={archiveSelected}><Archive size={15} />Archive</button><button type="button" className="admin-btn" disabled={publishing || actionBusy || !structure} onClick={() => publishIds(selected)}><CopyPlus size={16} />{publishing ? 'Publishing...' : 'Publish selected'}</button></div>}
+    {!!selected.length && <button type="button" className="admin-btn" disabled={batchBusy || batchDirty || !!editorDraft || !structure} onClick={() => setBatch({ key: Date.now(), drafts: drafts.filter(draft => selected.includes(draftId(draft))), autoStart: false })}>Smart fill / review selected products</button>}
+    {!!selected.length && <div className="draft-bulk-bar"><strong>{selected.length} selected</strong><div><Select value={bulkCategory} onChange={(event) => setBulkCategory(event.target.value)} aria-label="Category for selected drafts"><option value="">Assign category...</option>{flattenCategories(categories).map((item) => <option key={item._id} value={item._id}>{categoryLabel(item, categories) || item.name}</option>)}</Select><button type="button" className="admin-btn-ghost" disabled={!bulkCategory || actionBusy || batchBusy || batchDirty} onClick={applyBulkCategory}><Check size={15} />Apply</button></div><button type="button" className="admin-btn-ghost" disabled={actionBusy || batchBusy || batchDirty} onClick={archiveSelected}><Archive size={15} />Archive</button><button type="button" className="admin-btn" disabled={publishing || actionBusy || batchBusy || batchDirty || !structure} onClick={() => publishIds(selected)}><CopyPlus size={16} />{publishing ? 'Publishing...' : 'Publish selected'}</button></div>}
 
-    <div className="admin-card draft-queue"><div className="draft-queue__heading"><label><input type="checkbox" checked={allSelected} disabled={!selectable.length} onChange={() => setSelected(allSelected ? [] : selectable)} />Select page</label><span>{meta.total || 0} result{Number(meta.total) === 1 ? '' : 's'}</span></div>{isLoading ? <Loader label="Loading product drafts..." /> : !drafts.length ? <EmptyState title={status === 'archived' ? 'No archived drafts' : 'No product drafts found'} note={query ? 'Try a different search or clear the filters.' : 'Create drafts from photos or import a social product link.'} /> : <div className="draft-card-grid">{drafts.map((draft) => <DraftQueueCard key={draftId(draft)} draft={draft} selected={selected.includes(draftId(draft))} busy={actionBusy || publishing} onSelect={() => setSelected((current) => current.includes(draftId(draft)) ? current.filter((id) => id !== draftId(draft)) : [...current, draftId(draft)])} onEdit={() => setEditorDraft(draft)} onPreview={() => setPreviewDraft(draft)} onArchive={() => archiveOne(draft)} onRestore={() => restoreOne(draft)} onDelete={() => { setPendingDelete(draft); setDeleteConfirmation(''); }} />)}</div>}{Number(meta.totalPages || 1) > 1 && <div className="draft-pagination"><button type="button" disabled={page <= 1 || isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))}><ChevronLeft size={16} />Previous</button><span>Page {meta.page || page} of {meta.totalPages}</span><button type="button" disabled={page >= meta.totalPages || isFetching} onClick={() => setPage((value) => value + 1)}>Next<ChevronRight size={16} /></button></div>}</div>
+    <div className="admin-card draft-queue"><div className="draft-queue__heading"><label><input type="checkbox" checked={allSelected} disabled={!selectable.length} onChange={() => setSelected(allSelected ? [] : selectable)} />Select page</label><span>{meta.total || 0} result{Number(meta.total) === 1 ? '' : 's'}</span></div>{isLoading ? <Loader label="Loading product drafts..." /> : !drafts.length ? <EmptyState title={status === 'archived' ? 'No archived drafts' : 'No product drafts found'} note={query ? 'Try a different search or clear the filters.' : 'Create drafts from photos or import a social product link.'} /> : <div className="draft-card-grid">{drafts.map((draft) => <DraftQueueCard key={draftId(draft)} draft={draft} selected={selected.includes(draftId(draft))} busy={actionBusy || publishing || batchBusy || batchDirty} onSelect={() => setSelected((current) => current.includes(draftId(draft)) ? current.filter((id) => id !== draftId(draft)) : [...current, draftId(draft)])} onEdit={() => setEditorDraft(draft)} onPreview={() => setPreviewDraft(draft)} onArchive={() => archiveOne(draft)} onRestore={() => restoreOne(draft)} onDelete={() => { setPendingDelete(draft); setDeleteConfirmation(''); }} />)}</div>}{Number(meta.totalPages || 1) > 1 && <div className="draft-pagination"><button type="button" disabled={page <= 1 || isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))}><ChevronLeft size={16} />Previous</button><span>Page {meta.page || page} of {meta.totalPages}</span><button type="button" disabled={page >= meta.totalPages || isFetching} onClick={() => setPage((value) => value + 1)}>Next<ChevronRight size={16} /></button></div>}</div>
 
     {editorDraft && <DraftEditor draft={editorDraft} categories={categories} structure={structure} apiPrefix={apiPrefix} onClose={() => setEditorDraft(null)} onSave={saveDraft} onPublish={publishFromEditor} onPreview={setPreviewDraft} />}
     {previewDraft && <ProductPreviewModal product={normalizeDraftBody(previewDraft, categories, structure)} onClose={() => setPreviewDraft(null)} />}
@@ -260,12 +280,6 @@ function SummaryButton({ label, value, active, tone = '', onClick }) {
   return <button type="button" onClick={onClick} className={`draft-summary ${active ? 'is-active' : ''} ${tone ? `is-${tone}` : ''}`}><span>{label}</span><strong>{value}</strong></button>;
 }
 
-function UploadPanel({ files, setFiles, groupMode, setGroupMode, uploading, onUpload, onClose }) {
-  const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
-  useEffect(() => () => previews.forEach((item) => URL.revokeObjectURL(item.url)), [previews]);
-  const add = (incoming) => setFiles((current) => [...current, ...Array.from(incoming || [])].slice(0, 30));
-  return <section className="admin-card draft-upload-panel" aria-label="Create drafts from photos"><div className="draft-panel-heading"><div><p>FAST CATALOG SETUP</p><h2>Create drafts from product photos</h2><span>Photos stay editable before anything is published.</span></div><button type="button" onClick={onClose} aria-label="Close upload panel"><X /></button></div><div className="draft-upload-options"><label className={groupMode === 'single' ? 'is-selected' : ''}><input type="radio" name="draft-group" checked={groupMode === 'single'} onChange={() => setGroupMode('single')} /><strong>One product, multiple photos</strong><span>Use when every photo shows the same item.</span></label><label className={groupMode === 'separate' ? 'is-selected' : ''}><input type="radio" name="draft-group" checked={groupMode === 'separate'} onChange={() => setGroupMode('separate')} /><strong>One draft per photo</strong><span>Use when each photo is a different item.</span></label></div><label className="draft-dropzone"><Upload size={24} /><strong>Choose up to 30 product photos</strong><span>JPG, PNG or WEBP. Each photo can be up to 2MB.</span><input type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp" onChange={(event) => add(event.target.files)} /></label>{!!previews.length && <div className="draft-upload-previews">{previews.map(({ file, url }, index) => <figure key={`${file.name}-${file.size}-${index}`}><img src={url} alt="" /><figcaption title={file.name}>{file.name}</figcaption><button type="button" onClick={() => setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Remove ${file.name}`}><X size={14} /></button>{index === 0 && groupMode === 'single' && <b>Cover</b>}</figure>)}</div>}<div className="draft-upload-actions"><span>{files.length ? `${files.length} photo${files.length === 1 ? '' : 's'} selected` : 'No photos selected'}</span><button type="button" className="admin-btn-ghost" disabled={!files.length || uploading} onClick={() => setFiles([])}>Clear</button><button type="button" className="admin-btn" disabled={!files.length || uploading} onClick={onUpload}>{uploading ? 'Creating drafts...' : groupMode === 'single' ? 'Create one draft' : `Create ${files.length} drafts`}</button></div></section>;
-}
 
 function DraftQueueCard({ draft, selected, busy, onSelect, onEdit, onPreview, onArchive, onRestore, onDelete }) {
   const readiness = draft.readiness || localReadiness(draft);
@@ -381,6 +395,7 @@ function DraftEditor({ draft, categories, structure, apiPrefix, onClose, onSave,
     {stale && <div className="draft-alert is-error"><span>This draft changed elsewhere. Reload the latest version before editing again.</span><button type="button" onClick={() => window.location.reload()}>Reload</button></div>}
     {error && <p role="alert" className="draft-alert is-error">{error}</p>}
     <div className="draft-editor__score"><span><i style={{ width: `${readiness.score}%` }} /></span><strong>{readiness.score}% complete</strong>{readiness.issues[0] && <em>{readiness.issues[0]}</em>}</div>
+    <div className="draft-editor__smart"><ProductSmartFill form={form} categories={categories} structure={structure} apiPrefix={apiPrefix} priceField="sellingPrice" onApply={(patch, undo) => edit(current => applySmartPatch(current, patch, undo))} disabled={published || stale || uploadBusy || !structure} /></div>
     <nav className="draft-editor__tabs" aria-label="Draft sections">{[['basic', 'Basics'], ['media', 'Photos & video'], ['inventory', 'Inventory'], ['shipping', 'Shipping'], ['content', 'Content & SEO'], ['visibility', 'Visibility']].map(([key, label]) => <button type="button" key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => setTab(key)}>{label}</button>)}</nav>
     <div className="draft-editor__content"><fieldset disabled={published || stale}>{tab === 'basic' && <BasicFields {...common} />}{tab === 'media' && <MediaFields {...common} draft={draft} />}{tab === 'inventory' && <InventoryFields {...common} />}{tab === 'shipping' && <ShippingFields {...common} />}{tab === 'content' && <ContentFields {...common} />}{tab === 'visibility' && <VisibilityFields {...common} />}</fieldset></div>
     <footer className="draft-editor__footer"><button type="button" className="admin-btn-ghost" onClick={() => onPreview({ ...form, category: categories.find((item) => String(item._id) === String(form.category)) || form.category })}><Eye size={16} />Preview</button><span /><button type="button" className="admin-btn-ghost" onClick={close}>Close</button>{!published && <button type="button" className="admin-btn-ghost" disabled={!dirty || saveState === 'saving' || stale || uploadBusy} onClick={() => save().catch(() => null)}><Check size={16} />Save draft</button>}{!published && <button type="button" className="admin-btn" disabled={saveState === 'saving' || stale || uploadBusy || !structure} onClick={publish}><PackageCheck size={16} />Save & publish</button>}</footer>
@@ -388,7 +403,7 @@ function DraftEditor({ draft, categories, structure, apiPrefix, onClose, onSave,
 }
 
 function BasicFields({ form, update, edit, categories, structure, apiPrefix, subcategories }) {
-  return <div className="draft-form-section"><ProductSmartFill form={form} categories={categories} structure={structure} apiPrefix={apiPrefix} priceField="sellingPrice" onApply={(patch, undo) => edit((current) => applySmartPatch(current, patch, undo))} disabled={!structure} /><SectionTitle title="Product identity" note="Customer-facing name, category and commercial identifiers." />{!categories.length && <p className="draft-inline-note">Create an active category before publishing this product.</p>}<Field label="Product name" required><TextInput value={form.name || ''} maxLength={180} onChange={(event) => update('name', event.target.value)} /></Field><div className="draft-form-grid"><CategoryPicker categories={categories} value={form.category?._id || form.category || ''} required onChange={(value) => edit((current) => ({ ...current, category: value }))} /><Field label="Product type (optional / legacy)"><Select value={form.subCategory || ''} onChange={(event) => update('subCategory', event.target.value)}><option value="">{subcategories.length ? 'Select product type' : 'No product types yet'}</option>{form.subCategory && !subcategories.includes(form.subCategory) && <option value={form.subCategory}>{form.subCategory}</option>}{subcategories.map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field></div><div className="draft-form-grid"><Field label="SKU"><TextInput value={form.sku || ''} maxLength={100} onChange={(event) => update('sku', event.target.value)} /></Field><Field label="Barcode"><div className="draft-input-action"><TextInput value={form.barcode || ''} maxLength={100} onChange={(event) => update('barcode', event.target.value)} /><BarcodeScanner onDetected={(value) => update('barcode', value)} /></div></Field><Field label="Supplier SKU"><TextInput value={form.supplierSku || ''} maxLength={100} onChange={(event) => update('supplierSku', event.target.value)} /></Field><Field label="HSN code"><TextInput value={form.hsnCode || ''} maxLength={20} onChange={(event) => update('hsnCode', event.target.value)} /></Field></div><SectionTitle title="Pricing" /><div className="draft-form-grid four"><NumberField label="Selling price" required value={form.sellingPrice ?? form.price ?? ''} onChange={(value) => update('sellingPrice', value)} /><NumberField label="MRP" required value={form.originalPrice ?? ''} onChange={(value) => update('originalPrice', value)} /><NumberField label="Cost price" value={form.costPrice ?? ''} onChange={(value) => update('costPrice', value)} /><NumberField label="GST rate (%)" value={form.gstRate ?? ''} max="100" onChange={(value) => update('gstRate', value)} /></div>{structure?.attributes?.map((attribute) => <Field key={attribute.key} label={`${attribute.label}${attribute.unit ? ` (${attribute.unit})` : ''}`} required={attribute.required}><TextInput value={form.attributeValues?.[attribute.key] ?? ''} maxLength={500} onChange={(event) => update('attributeValues', { ...form.attributeValues, [attribute.key]: event.target.value })} /></Field>)}</div>;
+  return <div className="draft-form-section"><Field label="Brand"><TextInput value={form.brand || ''} onChange={event => update('brand', event.target.value)} /></Field><SectionTitle title="Product identity" note="Customer-facing name, category and commercial identifiers." />{!categories.length && <p className="draft-inline-note">Create an active category before publishing this product.</p>}<Field label="Product name" required><TextInput value={form.name || ''} maxLength={180} onChange={(event) => update('name', event.target.value)} /></Field><div className="draft-form-grid"><CategoryPicker categories={categories} value={form.category?._id || form.category || ''} required onChange={(value) => edit((current) => ({ ...current, category: value }))} /><Field label="Product type (optional / legacy)"><Select value={form.subCategory || ''} onChange={(event) => update('subCategory', event.target.value)}><option value="">{subcategories.length ? 'Select product type' : 'No product types yet'}</option>{form.subCategory && !subcategories.includes(form.subCategory) && <option value={form.subCategory}>{form.subCategory}</option>}{subcategories.map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field></div><div className="draft-form-grid"><Field label="SKU"><TextInput value={form.sku || ''} maxLength={100} onChange={(event) => update('sku', event.target.value)} /></Field><Field label="Barcode"><div className="draft-input-action"><TextInput value={form.barcode || ''} maxLength={100} onChange={(event) => update('barcode', event.target.value)} /><BarcodeScanner onDetected={(value) => update('barcode', value)} /></div></Field><Field label="Supplier SKU"><TextInput value={form.supplierSku || ''} maxLength={100} onChange={(event) => update('supplierSku', event.target.value)} /></Field><Field label="HSN code"><TextInput value={form.hsnCode || ''} maxLength={20} onChange={(event) => update('hsnCode', event.target.value)} /></Field></div><SectionTitle title="Pricing" /><div className="draft-form-grid four"><NumberField label="Selling price" required value={form.sellingPrice ?? form.price ?? ''} onChange={(value) => update('sellingPrice', value)} /><NumberField label="MRP" required value={form.originalPrice ?? ''} onChange={(value) => update('originalPrice', value)} /><NumberField label="Cost price" value={form.costPrice ?? ''} onChange={(value) => update('costPrice', value)} /><NumberField label="GST rate (%)" value={form.gstRate ?? ''} max="100" onChange={(value) => update('gstRate', value)} /></div>{getActiveAttributeDefinitions(structure, categories, form).map(attribute => <DynamicAttributeField key={attribute.key} attribute={attribute} value={form.attributeValues?.[attribute.key] ?? ''} onChange={value => update('attributeValues', { ...form.attributeValues, [attribute.key]: value })} />)}</div>;
 }
 
 function MediaFields({ form, edit, update, apiPrefix, setUploadBusy, draft }) {
@@ -408,7 +423,7 @@ function ShippingFields({ form, update }) {
 }
 
 function ContentFields({ form, update }) {
-  return <div className="draft-form-section"><SectionTitle title="Customer content" /><Field label="Short description"><TextArea value={form.shortDescription || ''} maxLength={500} onChange={(event) => update('shortDescription', event.target.value)} /></Field><Field label="Full description"><TextArea rows={7} value={form.description || ''} maxLength={6000} onChange={(event) => update('description', event.target.value)} /></Field><div className="draft-form-grid"><Field label="Highlights"><TextArea value={form.highlights || ''} onChange={(event) => update('highlights', event.target.value)} placeholder="Separate highlights with commas" /></Field><Field label="Tags"><TextArea value={form.tags || ''} onChange={(event) => update('tags', event.target.value)} placeholder="Separate tags with commas" /></Field><Field label="Fabric / material"><TextInput value={form.fabric || ''} onChange={(event) => update('fabric', event.target.value)} /></Field><Field label="Occasion"><TextInput value={form.occasion || ''} onChange={(event) => update('occasion', event.target.value)} /></Field><Field label="Care instructions"><TextArea value={form.careInstructions || ''} onChange={(event) => update('careInstructions', event.target.value)} /></Field><Field label="Return policy"><TextArea value={form.returnPolicy || ''} onChange={(event) => update('returnPolicy', event.target.value)} /></Field></div><SectionTitle title="Search preview" /><Field label="Meta title"><TextInput value={form.metaTitle || ''} maxLength={100} onChange={(event) => update('metaTitle', event.target.value)} /></Field><Field label="Meta description"><TextArea value={form.metaDescription || ''} maxLength={300} onChange={(event) => update('metaDescription', event.target.value)} /></Field><Field label="Search keywords"><TextInput value={form.metaKeywords || ''} onChange={(event) => update('metaKeywords', event.target.value)} /></Field></div>;
+  return <div className="draft-form-section"><SectionTitle title="Customer content" /><Field label="Short description"><TextArea value={form.shortDescription || ''} maxLength={500} onChange={(event) => update('shortDescription', event.target.value)} /></Field><Field label="Full description"><TextArea rows={7} value={form.description || ''} maxLength={6000} onChange={(event) => update('description', event.target.value)} /></Field><div className="draft-form-grid"><Field label="Highlights"><TextArea value={list(form.highlights).join('\n')} onChange={(event) => update('highlights', event.target.value.split('\n'))} placeholder="One highlight per line" /></Field><Field label="Tags"><TextArea value={form.tags || ''} onChange={(event) => update('tags', event.target.value)} placeholder="Separate tags with commas" /></Field><Field label="Fabric / material"><TextInput value={form.fabric || ''} onChange={(event) => update('fabric', event.target.value)} /></Field><Field label="Occasion"><TextInput value={form.occasion || ''} onChange={(event) => update('occasion', event.target.value)} /></Field><Field label="Care instructions"><TextArea value={form.careInstructions || ''} onChange={(event) => update('careInstructions', event.target.value)} /></Field><Field label="Return policy"><TextArea value={form.returnPolicy || ''} onChange={(event) => update('returnPolicy', event.target.value)} /></Field></div><SectionTitle title="Search preview" /><Field label="Meta title"><TextInput value={form.metaTitle || ''} maxLength={100} onChange={(event) => update('metaTitle', event.target.value)} /></Field><Field label="Meta description"><TextArea value={form.metaDescription || ''} maxLength={300} onChange={(event) => update('metaDescription', event.target.value)} /></Field><Field label="Search keywords"><TextInput value={form.metaKeywords || ''} onChange={(event) => update('metaKeywords', event.target.value)} /></Field></div>;
 }
 
 function VisibilityFields({ form, update }) {
@@ -428,7 +443,7 @@ function draftToForm(draft) {
   return {
     ...draft, category: draft.category?._id || draft.category || '',
     sizes: list(draft.sizes).join(', '), colors: list(draft.colors).join(', '),
-    tags: list(draft.tags).join(', '), highlights: list(draft.highlights).join(', '),
+    tags: list(draft.tags).join(', '), highlights: list(draft.highlights),
     images: Array.isArray(draft.images) ? draft.images : [], videos: Array.isArray(draft.videos) ? draft.videos : [],
     variants: Array.isArray(draft.variants) ? draft.variants : [],
     sizeChart: draft.sizeChart || { unit: 'in', columns: [], rows: [] },
@@ -445,15 +460,15 @@ export function normalizeDraftBody(form, categories = [], structure) {
   const payload = {
     ...form, baseRevision: Number(form.revision || 0), category: category || undefined,
     images: Array.isArray(form.images) ? form.images : [], videos: Array.isArray(form.videos) ? form.videos : [],
-    price: sellingPrice, sellingPrice, originalPrice: numeric(form.originalPrice, sellingPrice),
+    price: sellingPrice, sellingPrice, originalPrice: numeric(form.originalPrice, 0),
     costPrice: numeric(form.costPrice, 0), gstRate: numeric(form.gstRate, 0),
-    stock: integer(form.stock), lowStockAlert: integer(form.lowStockAlert), reorderQuantity: integer(form.reorderQuantity),
+    stock: form.stock == null || String(form.stock).trim() === '' ? null : integer(form.stock), lowStockAlert: integer(form.lowStockAlert), reorderQuantity: integer(form.reorderQuantity),
     shippingWeightKg: numeric(form.shippingWeightKg, 0),
     packageDimensions: { lengthCm: numeric(form.packageDimensions?.lengthCm, 0), widthCm: numeric(form.packageDimensions?.widthCm, 0), heightCm: numeric(form.packageDimensions?.heightCm, 0) },
     sizes: mode === 'sized' ? getSelectableSizes(sizingProduct) : [], colors: list(form.colors), tags: list(form.tags), highlights: list(form.highlights),
     sizingMode: sizingProduct.sizingMode || 'auto', sizeChartProfile: sizingProduct.sizeChartProfile || 'auto',
     sizeChart: buildSizeChartPayload(sizingProduct), sizeFitNotes: form.sizeFitNotes || '',
-    variants: mode === 'sized' ? normalizeVariants(form.variants) : [],
+    variants: normalizeVariants(form.variants),
     salePrice: numeric(form.salePrice, 0), restockAt: form.restockAt || null, publishAt: form.publishAt || null,
     saleStartAt: form.saleStartAt || null, saleEndAt: form.saleEndAt || null,
   };
@@ -470,5 +485,19 @@ function categoryName(value) { return typeof value === 'object' ? value?.name ||
 function sourceLabel(value) { return value === 'reel-import' ? 'Reel import' : value === 'social-import' ? 'Social import' : 'Manual draft'; }
 function toLocalDate(value) { if (!value) return ''; const date = new Date(value); if (Number.isNaN(date.getTime())) return ''; const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16); }
 function formatRelative(value) { const time = new Date(value).getTime(); if (!time) return 'recently'; const minutes = Math.max(0, Math.round((Date.now() - time) / 60000)); if (minutes < 1) return 'just now'; if (minutes < 60) return `${minutes}m ago`; if (minutes < 1440) return `${Math.round(minutes / 60)}h ago`; return new Date(time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); }
-function localReadiness(draft = {}) { const issues = []; const warnings = []; const price = Number(draft.sellingPrice ?? draft.price); const mrp = Number(draft.originalPrice ?? price); if (String(draft.name || '').trim().length < 3) issues.push('Add a product name'); if (!draft.category) issues.push('Choose a category'); if (!(draft.images?.length || draft.image)) issues.push('Add at least one product photo'); if (!(price > 0)) issues.push('Add a valid selling price'); if (!Number.isFinite(mrp) || mrp < price) issues.push('MRP must be equal to or above the selling price'); if (!Number.isSafeInteger(Number(draft.stock)) || Number(draft.stock) < 0) issues.push('Add a whole-number stock quantity'); if (String(draft.description || '').trim().length < 20) warnings.push('Add a useful description'); if (!draft.sku) warnings.push('Add a SKU'); if (!(Number(draft.shippingWeightKg) > 0)) warnings.push('Add packed weight'); const score = Math.max(0, Math.min(100, Math.round(((6 - Math.min(6, issues.length)) / 6) * 80 + ((3 - Math.min(3, warnings.length)) / 3) * 20))); return { state: issues.length ? 'incomplete' : warnings.length ? 'review' : 'ready', score, issues, warnings }; }
+function localReadiness(draft = {}) {
+  const issues = []; const warnings = [];
+  const price = Number(draft.sellingPrice ?? draft.price); const mrp = Number(draft.originalPrice ?? price);
+  if (String(draft.name || '').trim().length < 3) issues.push('Add a product name');
+  if (!draft.category) issues.push('Choose a category');
+  if (!(draft.images?.length || draft.image)) issues.push('Add at least one product photo');
+  if (!(price > 0)) issues.push('Add a valid selling price');
+  if (!Number.isFinite(mrp) || mrp < price) issues.push('MRP must be equal to or above the selling price');
+  if (draft.stock == null || String(draft.stock).trim() === '' || !Number.isSafeInteger(Number(draft.stock)) || Number(draft.stock) < 0) issues.push('Add a whole-number stock quantity');
+  if (String(draft.description || '').trim().length < 20) warnings.push('Add a useful description');
+  if (!draft.sku) warnings.push('Add a SKU');
+  if (!(Number(draft.shippingWeightKg) > 0)) warnings.push('Add packed weight');
+  const score = Math.max(0, Math.min(100, Math.round(((6 - Math.min(6, issues.length)) / 6) * 80 + ((3 - Math.min(3, warnings.length)) / 3) * 20)));
+  return { state: issues.length ? 'incomplete' : warnings.length ? 'review' : 'ready', score, issues, warnings };
+}
 function summarizeLocal(drafts) { return drafts.reduce((summary, draft) => { summary[draft.status] = (summary[draft.status] || 0) + 1; const state = draft.readiness?.state || localReadiness(draft).state; if (draft.status === 'draft') summary[state] = (summary[state] || 0) + 1; return summary; }, { draft: 0, published: 0, archived: 0, ready: 0, review: 0, incomplete: 0 }); }
