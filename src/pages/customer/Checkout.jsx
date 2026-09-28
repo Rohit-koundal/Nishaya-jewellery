@@ -470,7 +470,7 @@ export default function Checkout({ navigate }) {
 
   const verifyCodOrder = async () => {
     if (!pendingCodVerification || codVerificationBusy) return;
-    if (!/^\d{6}$/.test(codOtp)) { setCodVerificationMessage('Enter the 6-digit code sent to your mobile number.'); return; }
+    if (!/^\d{6}$/.test(codOtp)) { setCodVerificationMessage('Enter your 6-digit verification code.'); return; }
     setCodVerificationBusy(true); setCodVerificationMessage('');
     try {
       const order = await api.post(`/orders/${pendingCodVerification.orderId}/cod-verification/verify`, { otp: codOtp });
@@ -485,8 +485,9 @@ export default function Checkout({ navigate }) {
     try {
       const delivery = await api.post(`/orders/${pendingCodVerification.orderId}/cod-verification/send`, {});
       setPendingCodVerification(value => ({ ...value, delivery }));
-      setCodVerificationMessage(delivery.demoOtp ? `Demo code: ${delivery.demoOtp}` : 'A new verification code has been sent.');
-    } catch (err) { setCodVerificationMessage(err.message || 'Please wait before requesting another code.'); }
+      setCodOtp('');
+      setCodVerificationMessage(delivery.demoOtp ? `Demo code: ${delivery.demoOtp}` : 'A new verification code was requested. SMS delivery may take a moment.');
+    } catch (err) { setCodVerificationMessage(`${err.message || 'Please wait before requesting another code.'}${err.supportReference ? ` Support reference: ${err.supportReference}` : ''}`); }
     finally { setCodVerificationBusy(false); }
   };
 
@@ -515,7 +516,7 @@ export default function Checkout({ navigate }) {
         const order = await api.post('/orders/cod', payload);
         if (order.codVerification?.required && order.codVerification.status === 'PENDING') {
           setPendingCodVerification({ orderId: order._id, checkoutAttemptId: payload.checkoutAttemptId, delivery: order.codVerificationDelivery });
-          setCodVerificationMessage(order.codVerificationDelivery?.message || (order.codVerificationDelivery?.demoOtp ? `Demo code: ${order.codVerificationDelivery.demoOtp}` : 'Enter the code sent to your registered mobile number.'));
+          setCodVerificationMessage(order.codVerificationDelivery?.message || (order.codVerificationDelivery?.demoOtp ? `Demo code: ${order.codVerificationDelivery.demoOtp}` : 'A verification code was requested. SMS delivery may take a moment.'));
           setCodOtp('');
           return;
         }
@@ -801,10 +802,11 @@ function CodVerificationStep({ verification, otp, setOtp, message, busy, onVerif
       <span className="sc-cod-verification__icon"><ShieldCheck size={30} aria-hidden="true" /></span>
       <p className="sc-cod-verification__eyebrow">Secure cash on delivery</p>
       <h1 id="cod-verification-title">Confirm your COD order</h1>
-      <p>Enter the one-time code sent to your registered mobile number. This quick check helps us prepare your parcel safely.</p>
+      <p>Enter the one-time verification code for your registered mobile number. This quick check helps us prepare your parcel safely.</p>
       <label htmlFor="cod-order-otp">6-digit verification code</label>
       <input id="cod-order-otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} value={otp} onChange={event => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="••••••" autoFocus />
       {message && <p className={deliveryFailed ? 'is-error' : 'sc-cod-verification__message'} role="status">{message}</p>}
+      {verification.delivery?.supportReference && <p className="sc-cod-verification__message">Support reference: <span className="break-all select-all">{verification.delivery.supportReference}</span></p>}
       <button className="sc-cod-verification__primary" type="button" disabled={busy || otp.length !== 6} onClick={onVerify}>{busy ? 'Checking…' : 'Verify and confirm order'}</button>
       <div className="sc-cod-verification__actions"><button type="button" disabled={busy} onClick={onResend}>Resend code</button><button type="button" disabled={busy} onClick={onOrders}>View my orders</button></div>
       <small>Payment will still be collected only when your order is delivered.</small>

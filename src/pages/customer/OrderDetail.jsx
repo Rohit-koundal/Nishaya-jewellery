@@ -121,8 +121,14 @@ export default function OrderDetail({ route = '', navigate }) {
   const resendCod = async () => {
     if (scope.pending) return;
     scope.pending = true; setBusy(true); setVerificationMessage('');
-    try { const result = await api.post(`/orders/${orderId}/cod-verification/send`, {}); if (isCurrent()) setVerificationMessage(result.demoOtp ? `Demo code: ${result.demoOtp}` : 'A new code has been sent to your registered mobile number.'); }
-    catch (err) { if (isCurrent()) setVerificationMessage(err.message); }
+    try {
+      const result = await api.post(`/orders/${orderId}/cod-verification/send`, {});
+      if (isCurrent()) {
+        setVerificationOtp('');
+        setVerificationMessage(result.demoOtp ? `Demo code: ${result.demoOtp}` : `A new code was requested. SMS delivery may take a moment.${result.supportReference ? ` Support reference: ${result.supportReference}` : ''}`);
+      }
+    }
+    catch (err) { if (isCurrent()) setVerificationMessage(`${err.message}${err.supportReference ? ` Support reference: ${err.supportReference}` : ''}`); }
     finally { scope.pending = false; if (isCurrent()) setBusy(false); }
   };
   const canReview = order && ['Delivered', 'Return Requested', 'Exchange Requested', 'Returned', 'Refunded'].includes(order.orderStatus);

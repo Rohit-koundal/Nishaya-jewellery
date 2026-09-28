@@ -110,3 +110,13 @@ test.each([
   mockDispatch.mockReturnValue({ unwrap: () => Promise.reject({ status: 503, data: { code, message: 'private-provider-data' } }) });
   await expect(api.post('/auth/send-otp', { phone: '9876543210' })).rejects.toMatchObject({ status: 503, code, message });
 });
+
+test('OTP errors retain safe support references and retry timing but reject arbitrary reference text', async () => {
+  const supportReference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
+  mockDispatch.mockReturnValue({ unwrap: () => Promise.reject({ status: 429, data: { message: 'Please wait', supportReference, retryAfter: 30 } }) });
+  await expect(api.post('/auth/send-otp', { phone: '9876543210' })).rejects.toMatchObject({ supportReference, retryAfter: 30 });
+  mockDispatch.mockReturnValue({ unwrap: () => Promise.reject({ status: 503, data: { code: 'OTP_DELIVERY_UNAVAILABLE', supportReference: 'secret raw provider response', retryAfter: 'Infinity' } }) });
+  const error = await api.post('/auth/send-otp', { phone: '9876543210' }).catch(value => value);
+  expect(error.supportReference).toBeUndefined();
+  expect(error.retryAfter).toBeUndefined();
+});

@@ -149,6 +149,9 @@ function toCustomerError(error, path, fallbackMessage) {
   customerError.status = status;
   customerError.code = data.code;
   customerError.details = message;
+  const supportReference = data.supportReference || data.details?.supportReference;
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(String(supportReference || ''))) customerError.supportReference = supportReference;
+  if (typeof data.retryAfter === 'number' && Number.isFinite(data.retryAfter) && data.retryAfter >= 0 && data.retryAfter <= 86400) customerError.retryAfter = data.retryAfter;
   return customerError;
 }
 

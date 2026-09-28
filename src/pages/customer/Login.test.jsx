@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Login from './Login';
 import LoginPrompt from '../../components/auth/LoginPrompt';
 
@@ -22,6 +22,104 @@ describe('customer login', () => {
     jest.clearAllMocks();
     localStorage.clear();
     window.history.replaceState(null, '', '/login');
+  });
+
+  afterEach(() => jest.useRealTimers());
+
+  test('accepted requests show honest delivery guidance and a safe support reference', async () => {
+    const reference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
+    mockAuth.sendOtp.mockResolvedValueOnce({ otpMode: 'production', deliveryStatus: 'accepted', supportReference: reference, retryAfter: 45, message: 'OTP sent successfully' });
+    render(<Login route="/login" />);
+    fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('OTP requested. SMS delivery may take a moment.')).toBeVisible();
+    expect(screen.getByText(reference)).toBeVisible();
+    expect(screen.getByText('00:45')).toBeVisible();
+    expect(screen.queryByText('OTP sent successfully')).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Sent to/)).not.toBeInTheDocument();
+  });
+
+  test('backgrounding the phone does not pause or extend the resend deadline', async () => {
+    jest.useFakeTimers('modern');
+    const started = new Date('2026-09-28T06:00:00Z');
+    jest.setSystemTime(started);
+    mockAuth.sendOtp.mockResolvedValueOnce({ otpMode: 'production', deliveryStatus: 'accepted', retryAfter: 45 });
+    render(<Login route="/login" />);
+    fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('00:45')).toBeVisible();
+    act(() => {
+      jest.setSystemTime(new Date(started.getTime() + 50000));
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(screen.getByText('00:00')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Resend OTP' })).toBeEnabled();
+    expect(mockAuth.sendOtp).toHaveBeenCalledTimes(1);
+    expect(mockAuth.resendOtp).not.toHaveBeenCalled();
+  });
+
+  test('refresh restores the existing deadline and support reference without sending again', async () => {
+    jest.useFakeTimers('modern');
+    const started = new Date('2026-09-28T06:00:00Z');
+    jest.setSystemTime(started);
+    const reference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
+    mockAuth.sendOtp.mockResolvedValueOnce({ otpMode: 'production', deliveryStatus: 'accepted', supportReference: reference, retryAfter: 50 });
+    const first = render(<Login route="/login" />);
+    fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('00:50')).toBeVisible();
+    const deadline = JSON.parse(localStorage.getItem('samira_login_otp_state')).cooldownExpiresAt;
+    first.unmount();
+    jest.setSystemTime(new Date(deadline - 20000));
+    render(<Login route="/login?step=otp&phone=9876543210&consent=1" />);
+    expect(screen.getByText('00:20')).toBeVisible();
+    expect(screen.getByText(reference)).toBeVisible();
+    expect(mockAuth.sendOtp).toHaveBeenCalledTimes(1);
+  });
+
+  test('resend clears the superseded code and uses the server cooldown', async () => {
+    mockAuth.resendOtp.mockResolvedValueOnce({ deliveryStatus: 'accepted', retryAfter: 25 });
+    renderOtpStep();
+    fireEvent.paste(screen.getByLabelText('OTP digit 1'), { clipboardData: { getData: () => '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Resend OTP' }));
+    expect(await screen.findByText('00:25')).toBeVisible();
+    expect(otpInputs().map(input => input.value).join('')).toBe('');
+    expect(screen.getByRole('button', { name: 'Verify OTP' })).toBeDisabled();
+  });
+
+  test('provider failure exposes only a support reference and server cooldown is honored on retry', async () => {
+    const reference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
+    mockAuth.resendOtp.mockRejectedValueOnce(Object.assign(new Error('Please wait before retrying.'), { supportReference: reference, retryAfter: 20 }));
+    renderOtpStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Resend OTP' }));
+    expect(await screen.findByText(reference)).toBeVisible();
+    expect(screen.getByText('00:20')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Resend OTP' })).toBeDisabled();
+  });
+
+  test('duplicate form submissions trigger only one SMS request', async () => {
+    let resolve;
+    mockAuth.sendOtp.mockReturnValueOnce(new Promise(done => { resolve = done; }));
+    render(<Login route="/login" />);
+    fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    const form = screen.getByRole('button', { name: 'Continue' }).closest('form');
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(mockAuth.sendOtp).toHaveBeenCalledTimes(1);
+    await act(async () => resolve({ deliveryStatus: 'accepted', retryAfter: 60 }));
+    expect(screen.getByRole('button', { name: 'Verify OTP' })).toBeVisible();
+  });
+
+  test('a stored cooldown and support reference are not reused for another phone', async () => {
+    localStorage.setItem('samira_login_otp_state', JSON.stringify({ phone: '9000000001', cooldownExpiresAt: Date.now() + 60000, supportReference: '01564fe1-0046-434a-8f91-b4c6c8549a3f' }));
+    renderOtpStep();
+    expect(screen.getByText('00:00')).toBeVisible();
+    expect(screen.queryByText(/Support reference:/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resend OTP' })).toBeEnabled();
   });
 
   test('restricts the phone field, scopes consent clicks, and exposes policy/help links', () => {

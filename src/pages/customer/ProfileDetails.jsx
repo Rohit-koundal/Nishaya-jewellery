@@ -83,11 +83,11 @@ export default function ProfileDetails() {
     setSuccess('');
     setPhoneOtpSending(true);
     try {
-      await sendProfilePhoneChangeOtp(phone);
+      const delivery = await sendProfilePhoneChangeOtp(phone);
       setPhoneOtpSent(true);
-      setSuccess('OTP sent to your new mobile number');
+      setSuccess(`OTP requested for your new mobile number. SMS delivery may take a moment.${delivery?.supportReference ? ` Support reference: ${delivery.supportReference}` : ''}`);
     } catch (requestError) {
-      setError(requestError.message);
+      setError(`${requestError.message}${requestError.supportReference ? ` Support reference: ${requestError.supportReference}` : ''}`);
     } finally {
       setPhoneOtpSending(false);
     }

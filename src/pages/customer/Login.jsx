@@ -21,12 +21,15 @@ export default function Login({ route = '/login' }) {
   const { notify } = useDesktopFeedback();
   const routePhone = searchParams.get('phone') || '';
   const savedOtpState = readOtpState();
+  const canRestore = savedOtpState?.phone === normalizePhone(routePhone, '+91');
   const [step, setStep] = useState(() => (routeStep === 'otp' ? 'otp' : 'phone'));
   const [countryCode] = useState('+91');
   const [phone, setPhone] = useState(digitsOnly(routePhone, 10));
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [consent, setConsent] = useState(searchParams.get('consent') === '1');
-  const [cooldown, setCooldown] = useState(() => getRemainingCooldown(savedOtpState?.cooldownExpiresAt));
+  const [cooldownExpiresAt, setCooldownExpiresAt] = useState(() => canRestore ? Number(savedOtpState?.cooldownExpiresAt) || 0 : 0);
+  const [cooldown, setCooldown] = useState(() => getRemainingCooldown(cooldownExpiresAt));
+  const [supportReference, setSupportReference] = useState(() => canRestore ? readSupportReference(savedOtpState) : '');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [message, setMessage] = useState('');
@@ -34,6 +37,7 @@ export default function Login({ route = '/login' }) {
   const [demoOtp, setDemoOtp] = useState('');
   const [autoRequested, setAutoRequested] = useState(false);
   const inputs = useRef([]);
+  const sending = useRef(false);
   const normalizedPhone = normalizePhone(phone, countryCode);
   const isOtpComplete = otp.every(Boolean);
   const canSubmitPhone = consent && Boolean(normalizedPhone);
@@ -65,6 +69,9 @@ export default function Login({ route = '/login' }) {
 
     if (nextStep === 'phone') {
       setDemoOtp('');
+      setSupportReference('');
+      setCooldownExpiresAt(0);
+      setCooldown(0);
       clearOtpState();
       setStep('phone');
       setOtp(['', '', '', '', '', '']);
@@ -87,10 +94,29 @@ export default function Login({ route = '/login' }) {
   }, [buildLoginUrl, normalizedPhone, phone]);
 
   useEffect(() => {
-    if (!cooldown) return undefined;
-    const timer = setInterval(() => setCooldown((value) => Math.max(0, value - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [cooldown]);
+    let timer;
+    const update = () => {
+      const remaining = getRemainingCooldown(cooldownExpiresAt);
+      setCooldown(remaining);
+      if (!remaining) clearInterval(timer);
+    };
+    update();
+    if (!getRemainingCooldown(cooldownExpiresAt)) return undefined;
+    timer = setInterval(update, 1000);
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('focus', update);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', update);
+      window.removeEventListener('focus', update);
+    };
+  }, [cooldownExpiresAt]);
+
+  const startCooldown = useCallback((seconds = OTP_COOLDOWN_SECONDS) => {
+    const duration = typeof seconds === 'number' && Number.isFinite(seconds) && seconds >= 0 && seconds <= 86400 ? Math.ceil(seconds) : OTP_COOLDOWN_SECONDS;
+    setCooldownExpiresAt(Date.now() + duration * 1000);
+    setCooldown(duration);
+  }, []);
 
   useEffect(() => {
     const nextStep = routeStep === 'otp' ? 'otp' : 'phone';
@@ -110,12 +136,14 @@ export default function Login({ route = '/login' }) {
       step,
       phone: normalizedPhone,
       countryCode,
-      cooldownExpiresAt: Date.now() + cooldown * 1000,
+      cooldownExpiresAt,
+      supportReference,
     });
-  }, [cooldown, countryCode, normalizedPhone, step]);
+  }, [cooldownExpiresAt, countryCode, normalizedPhone, step, supportReference]);
 
   const requestOtp = useCallback(async (event) => {
     event?.preventDefault();
+    if (sending.current) return;
     setMessage('');
     setMessageType('info');
     if (!consent) {
@@ -125,23 +153,29 @@ export default function Login({ route = '/login' }) {
       return showFeedback('Enter a valid mobile number for the selected country code.', 'error');
     }
     setLoading(true);
+    sending.current = true;
+    setSupportReference('');
     try {
       const data = await sendOtp(normalizedPhone);
       if (data.token && data.user) {
         clearOtpState();
         return showFeedback('Logged in successfully.', 'success');
       }
-      setCooldown(OTP_COOLDOWN_SECONDS);
+      startCooldown(data.retryAfter);
+      setSupportReference(readSupportReference(data));
       setDemoOtp(readDemoOtp(data));
       enterAuthStep('otp', normalizedPhone);
-      showFeedback(otpSentMessage(data), 'success');
+      showFeedback(otpSentMessage(data), data.deliveryStatus === 'accepted' ? 'info' : 'success');
       setTimeout(() => inputs.current[0]?.focus(), 50);
     } catch (error) {
+      setSupportReference(readSupportReference(error));
+      if (Number.isFinite(error.retryAfter)) startCooldown(error.retryAfter);
       showFeedback(error.message, 'error');
     } finally {
+      sending.current = false;
       setLoading(false);
     }
-  }, [consent, enterAuthStep, normalizedPhone, sendOtp, showFeedback]);
+  }, [consent, enterAuthStep, normalizedPhone, sendOtp, showFeedback, startCooldown]);
 
   useEffect(() => {
     if (!autoSendOtp || autoRequested) return;
@@ -152,6 +186,7 @@ export default function Login({ route = '/login' }) {
 
   const submitOtp = async (event) => {
     event.preventDefault();
+    if (sending.current) return;
     setMessage('');
     setMessageType('info');
     const code = otp.join('');
@@ -159,6 +194,7 @@ export default function Login({ route = '/login' }) {
       return showFeedback('Enter the 6-digit OTP.', 'error');
     }
     setLoading(true);
+    sending.current = true;
     try {
       await verifyOtp({ phone: normalizedPhone, otp: code, redirectTo });
       clearOtpState();
@@ -167,6 +203,7 @@ export default function Login({ route = '/login' }) {
       inputs.current[5]?.focus();
       inputs.current[5]?.select();
     } finally {
+      sending.current = false;
       setLoading(false);
     }
   };
@@ -289,17 +326,23 @@ export default function Login({ route = '/login' }) {
   };
 
   const doResend = async () => {
-    if (cooldown || resending) return;
+    if (cooldown || getRemainingCooldown(cooldownExpiresAt) || resending || sending.current || loading) return;
     setMessage('');
     setResending(true);
+    sending.current = true;
     try {
       const data = await resendOtp(normalizedPhone);
-      setCooldown(OTP_COOLDOWN_SECONDS);
+      startCooldown(data.retryAfter);
+      setSupportReference(readSupportReference(data));
+      setOtp(['', '', '', '', '', '']);
       setDemoOtp(readDemoOtp(data));
-      showFeedback(otpSentMessage(data, 'OTP resent successfully.'), 'success');
+      showFeedback(otpSentMessage(data), data.deliveryStatus === 'accepted' ? 'info' : 'success');
     } catch (error) {
+      setSupportReference(readSupportReference(error));
+      if (Number.isFinite(error.retryAfter)) startCooldown(error.retryAfter);
       showFeedback(error.message, 'error');
     } finally {
+      sending.current = false;
       setResending(false);
     }
   };
@@ -352,7 +395,7 @@ export default function Login({ route = '/login' }) {
                 </div>
                 <div className="pt-1">
                   <h2 className="text-[17px] font-bold leading-[1.05] text-[#2f3851] sm:text-[21px]">Verify with OTP</h2>
-                  <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">{demoOtp ? 'Demo verification for' : 'Sent to'} {maskPhone(phone)}</p>
+                  <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">{demoOtp ? 'Demo verification for' : 'Verification code for'} {maskPhone(phone)}</p>
                 </div>
               </div>
               {demoOtp && <p role="status" className="rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_245))] px-4 py-3 text-sm text-wine">Demo mode: enter <strong>{demoOtp}</strong>. No SMS is needed.</p>}
@@ -382,17 +425,18 @@ export default function Login({ route = '/login' }) {
               <p className="text-[11px] text-slate-400 sm:text-[12px]">Resend OTP in: <span className="font-bold text-[#2f3851]">{String(Math.floor(cooldown / 60)).padStart(2, '0')}:{String(cooldown % 60).padStart(2, '0')}</span></p>
               <Button
                 type="submit"
-                disabled={loading || !isOtpComplete}
+                disabled={loading || resending || !isOtpComplete}
                 className={`h-10 w-full rounded-xl text-white disabled:opacity-60 ${isOtpComplete ? 'bg-[rgb(var(--app-primary-rgb,255_95_134))] hover:bg-[#ff4c7b]' : 'bg-[#a8a8b3] hover:bg-[#a8a8b3]'}`}
               >
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </Button>
               <div className="flex flex-col items-start gap-4">
-                <button type="button" onClick={doResend} disabled={!!cooldown || resending} className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,255_95_134))] disabled:text-slate-400 sm:text-[12px]">
+                <button type="button" onClick={doResend} disabled={!!cooldown || resending || loading} className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,255_95_134))] disabled:text-slate-400 sm:text-[12px]">
                   {resending ? 'Sending...' : 'Resend OTP'}
                 </button>
                 <HelpLink />
               </div>
+              {!demoOtp && <p className="text-[11px] leading-relaxed text-slate-500">SMS can take a moment. Check your number and SMS spam folder. If it does not arrive, resend after the countdown or contact support. After resending, use only the latest code.</p>}
               {message && <StatusMessage type={messageType} message={message} />}
             </form>
           ) : (
@@ -429,6 +473,7 @@ export default function Login({ route = '/login' }) {
               {message && <StatusMessage type={messageType} message={message} onRetry={requestOtp} loading={loading} />}
             </form>
           )}
+          {supportReference && <p className="mt-3 break-all text-[11px] text-slate-500">Support reference: <span className="select-all font-mono">{supportReference}</span></p>}
         </div>
       </div>
     </section>
@@ -453,9 +498,15 @@ function StatusMessage({ type, message, onRetry, loading, className = '' }) {
   );
 }
 
-function otpSentMessage(response, fallback = 'OTP sent successfully.') {
+function otpSentMessage(response, fallback = 'OTP requested. SMS delivery may take a moment.') {
   if (readDemoOtp(response)) return 'Demo OTP ready. Use the code shown above.';
+  if (response?.deliveryStatus === 'accepted') return fallback;
   return response?.message || fallback;
+}
+
+function readSupportReference(value) {
+  const reference = String(value?.supportReference || '');
+  return /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(reference) ? reference : '';
 }
 
 function readDemoOtp(response) {
@@ -518,6 +569,6 @@ function maskPhone(value) {
 
 function getRemainingCooldown(cooldownExpiresAt) {
   const expiresAt = Number(cooldownExpiresAt || 0);
-  if (!expiresAt) return 0;
+  if (!Number.isFinite(expiresAt) || !expiresAt || expiresAt - Date.now() > 86400000) return 0;
   return Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
 }
