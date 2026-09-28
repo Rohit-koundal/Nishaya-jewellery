@@ -175,14 +175,14 @@ export default function Contact({ route = '/contact' }) {
             </div>
           </aside>
 
-          <form onSubmit={submit} className="rounded-[26px] border border-[#eadfd5] bg-white/95 p-5 shadow-[0_20px_65px_rgba(63,42,31,0.09)] backdrop-blur sm:p-8 lg:p-10">
+          <form onSubmit={submit} className="rounded-[26px] border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white/95 p-5 shadow-[0_20px_65px_rgba(63,42,31,0.09)] backdrop-blur sm:p-8 lg:p-10">
             <div className="flex items-start justify-between gap-4 border-b border-[#efe6de] pb-6">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a9773e]">Send a message</p>
                 <h2 className="mt-2 text-[25px] font-semibold text-[#211b1d] sm:text-[30px]">How can we help?</h2>
                 <p className="mt-2 text-[13px] leading-6 text-[#786c6f]">Share a few details and our team will get back to you.</p>
               </div>
-              <span className="hidden h-12 w-12 shrink-0 place-items-center rounded-full bg-[#fff0f4] text-[#7a1f36] sm:grid">
+              <span className="hidden h-12 w-12 shrink-0 place-items-center rounded-full bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-[rgb(var(--app-primary-rgb,122_31_54))] sm:grid">
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
               </span>
             </div>
@@ -205,7 +205,7 @@ export default function Contact({ route = '/contact' }) {
               </ContactField>
             </div>
 
-            <button type="submit" className="mt-6 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-[#7a1f36] to-[#951f48] px-5 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_12px_28px_rgba(122,31,54,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(122,31,54,0.3)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0" disabled={submitting}>
+            <button type="submit" className="mt-6 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-[12px] bg-gradient-to-r from-[rgb(var(--app-primary-rgb,122_31_54))] to-[#951f48] px-5 text-[13px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_12px_28px_rgba(122,31,54,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(122,31,54,0.3)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0" disabled={submitting}>
               {submitting ? 'Sending...' : 'Send Message'}
               {!submitting ? <Send className="h-4 w-4" aria-hidden="true" /> : null}
             </button>

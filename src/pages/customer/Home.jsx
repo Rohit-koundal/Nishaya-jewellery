@@ -236,7 +236,7 @@ export default function Home({ navigate, storeSlug = '', industry = 'fashion', i
 
   return (
     <>
-      {!isDesktop && <div className={`mobile-home flex flex-col bg-[#fcfaf7] ${mobileCustom ? 'mobile-home--custom' : ''}`}>
+      {!isDesktop && <div className={`mobile-home flex flex-col bg-[rgb(var(--app-background-rgb,252_250_247))] ${mobileCustom ? 'mobile-home--custom' : ''}`}>
         {settings.acceptingOrders === false && <MobileOrderPause message={settings.orderPauseMessage} />}
         {mobileFeedQuery.isError && !useLegacyMobileFeed && catalog.length > 0 && <MobileSectionNotice message="Showing the last loaded collection. Refresh to check the latest availability." onRetry={refetch} />}
         {productFeedWarning && <MobileSectionNotice message="Some product collections could not be refreshed." onRetry={refetch} />}
@@ -356,35 +356,35 @@ function MobileHero({ banners = [], heading, section, navigate, industry = 'fash
       <button
         type="button"
         onClick={() => section?.buttonLink ? navigate(section.buttonLink) : banner?._id ? openBanner(banner, navigate) : navigate('/products')}
-        className="relative block min-h-[190px] w-full overflow-hidden rounded-[18px] bg-gradient-to-r from-[#fbf1ef] via-[#fff8f5] to-[#f6ddcf] text-left shadow-[0_8px_24px_rgba(122,31,54,0.10)]"
+        className="relative block min-h-[190px] w-full overflow-hidden rounded-[18px] bg-gradient-to-r from-[rgb(var(--app-secondary-rgb,251_241_239))] via-[rgb(var(--app-secondary-rgb,255_248_245))] to-[rgb(var(--app-secondary-rgb,246_221_207))] text-left shadow-[0_8px_24px_rgba(122,31,54,0.10)]"
         aria-label={`${banner?.title || heading || 'Featured collection'}${slides.length > 1 ? `, slide ${(slideIndex % slides.length) + 1} of ${slides.length}` : ''}`}
       >
         {heroImage && <img src={heroImage} alt={heroAlt} loading="eager" fetchPriority="high" decoding="async" sizes="100vw" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: heroImagePosition }} />}
-        <span className="absolute inset-0 bg-gradient-to-r from-[#fff9f5]/95 via-[#fff8f4]/82 to-[#4b1b2a]/10" />
+        <span className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--app-secondary-rgb,255_249_245)/0.95)] via-[rgb(var(--app-secondary-rgb,255_248_244)/0.82)] to-[rgb(var(--app-primary-deep-rgb,75_27_42)/0.1)]" />
         <div className="relative flex min-h-[190px] items-center px-5 py-5">
           <div className="min-w-0 max-w-[72%]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#9d3154]">{fashion ? 'New festive collection' : `New ${industryLabel(industry)} collection`}</p>
-            <h1 className="mt-2 text-[20px] font-semibold leading-[1.12] text-[#6d1f34]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[rgb(var(--app-primary-rgb,157_49_84))]">{fashion ? 'New festive collection' : `New ${industryLabel(industry)} collection`}</p>
+            <h1 className="mt-2 text-[20px] font-semibold leading-[1.12] text-[rgb(var(--app-primary-rgb,109_31_52))]">
               {heading || section?.heading || banner?.title || 'Celebrate in Style'}
             </h1>
-            <p className="mt-1.5 max-w-[190px] text-[12px] leading-[1.35] text-[#6a5761]">
+            <p className="mt-1.5 max-w-[190px] text-[12px] leading-[1.35] text-[rgb(var(--app-muted-rgb,106_87_97))]">
               {section?.description || banner?.subtitle || (fashion ? 'Elegant sarees, suits & kurtis for every occasion.' : `Discover quality ${industryLabel(industry).toLowerCase()} products selected for you.`)}
             </p>
-            <div className="mt-3 inline-flex items-center rounded-full border border-[#ead5da] bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#6d1f34]">
+            <div className="mt-3 inline-flex items-center rounded-full border border-[rgb(var(--app-border-rgb,234_213_218))] bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,109_31_52))]">
               {offerLabel}
             </div>
             <div className="mt-3">
-              <span className="inline-flex h-9 items-center rounded-[8px] bg-[#7a1f36] px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-white">
+              <span className="inline-flex h-9 items-center rounded-[8px] bg-[rgb(var(--app-primary-rgb,122_31_54))] px-4 text-[10px] font-bold uppercase tracking-[0.08em] text-white">
                 {section?.buttonText || 'Shop Now'}
               </span>
             </div>
           </div>
-          {!heroImage && <span className="absolute bottom-4 right-4 max-w-[28%] text-right font-display text-lg font-black leading-tight text-[#7a1f36]/70">{brand.websiteName}</span>}
+          {!heroImage && <span className="absolute bottom-4 right-4 max-w-[28%] text-right font-display text-lg font-black leading-tight text-[rgb(var(--app-primary-rgb,122_31_54)/0.7)]">{brand.websiteName}</span>}
         </div>
       </button>
       {slides.length > 1 && <>
-        <button type="button" onClick={() => move(-1)} aria-label="Previous featured offer" className="absolute left-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/70 bg-white/90 text-[#7a1f36] shadow-md"><ChevronLeft className="h-4 w-4" /></button>
-        <button type="button" onClick={() => move(1)} aria-label="Next featured offer" className="absolute right-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/70 bg-white/90 text-[#7a1f36] shadow-md"><ChevronRight className="h-4 w-4" /></button>
+        <button type="button" onClick={() => move(-1)} aria-label="Previous featured offer" className="absolute left-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/70 bg-white/90 text-[rgb(var(--app-primary-rgb,122_31_54))] shadow-md"><ChevronLeft className="h-4 w-4" /></button>
+        <button type="button" onClick={() => move(1)} aria-label="Next featured offer" className="absolute right-5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/70 bg-white/90 text-[rgb(var(--app-primary-rgb,122_31_54))] shadow-md"><ChevronRight className="h-4 w-4" /></button>
         <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/20 px-2 py-1" aria-label="Choose featured offer">
           {slides.map((slide, index) => <button key={slide._id || slide.id || index} type="button" onClick={() => setSlideIndex(index)} aria-label={`Show featured offer ${index + 1}`} aria-current={index === slideIndex % slides.length ? 'true' : undefined} className={`h-1.5 rounded-full transition-all ${index === slideIndex % slides.length ? 'w-5 bg-white' : 'w-1.5 bg-white/60'}`} />)}
         </div>
@@ -413,14 +413,14 @@ function MobileServices({ settings, heading }) {
   ];
   return (
     <section className="px-3 pb-4" aria-labelledby={heading ? 'mobile-services-heading' : undefined} aria-label={heading ? undefined : 'Store services'}>
-      {heading && <h2 id="mobile-services-heading" className="mb-3 text-[16px] font-bold text-[#1f2a44]">{heading}</h2>}
+      {heading && <h2 id="mobile-services-heading" className="mb-3 text-[16px] font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">{heading}</h2>}
       <div className="grid grid-cols-4 gap-2 rounded-[16px] bg-white px-2.5 py-3.5 shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
         {highlights.map(({ icon: IconComp, title, subtitle }) => (
           <div key={title} className="flex flex-col items-center text-center">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#fbf1ef] text-[#9d3154]">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-[rgb(var(--app-secondary-rgb,251_241_239))] text-[rgb(var(--app-primary-rgb,157_49_84))]">
               <IconComp className="h-4.5 w-4.5" strokeWidth={1.9} />
             </div>
-            <p className="mt-2 text-[11px] font-semibold leading-3 text-[#1f2a44]">{title}</p>
+            <p className="mt-2 text-[11px] font-semibold leading-3 text-[rgb(var(--app-text-rgb,31_42_68))]">{title}</p>
             <p className="mt-1 text-[9px] leading-3 text-slate-400">{subtitle}</p>
           </div>
         ))}
@@ -436,9 +436,9 @@ function MobileCategoryScroller({ categories, navigate, heading }) {
     <section className="px-3 pb-4" aria-labelledby="mobile-categories-heading">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 id="mobile-categories-heading" className="text-[15px] font-bold text-[#1f2a44]">{heading || 'Shop by category'}</h2>
+          <h2 id="mobile-categories-heading" className="text-[15px] font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">{heading || 'Shop by category'}</h2>
         </div>
-        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId: 'categories' } }); navigate('/category'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6b7280]">
+        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId: 'categories' } }); navigate('/category'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-muted-rgb,107_114_128))]">
           View all
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
@@ -453,18 +453,18 @@ function MobileCategoryScroller({ categories, navigate, heading }) {
               onClick={() => { trackEvent('HOME_CATEGORY_CLICK', { metadata: { categoryId: String(categoryId), categoryName: category.name } }); navigate(`/products?category=${encodeURIComponent(categoryId)}`); }}
               className="min-w-[72px] max-w-[72px] text-center"
             >
-              <div className="mx-auto flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full bg-[#f6e8df] ring-1 ring-[#f0dfd3]">
+              <div className="mx-auto flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full bg-[rgb(var(--app-secondary-rgb,246_232_223))] ring-1 ring-[rgb(var(--app-border-rgb,240_223_211))]">
                 {category.image ? (
                   <img loading="lazy" decoding="async" src={normalizeImageUrl(category.image)} alt={category.name} className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-[#7a1f36]">{category.name?.slice(0, 2)}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-[rgb(var(--app-primary-rgb,122_31_54))]">{category.name?.slice(0, 2)}</span>
                 )}
               </div>
-              <p className="mt-2 truncate text-[11px] font-medium text-[#1f2a44]">{category.name}</p>
+              <p className="mt-2 truncate text-[11px] font-medium text-[rgb(var(--app-text-rgb,31_42_68))]">{category.name}</p>
             </button>
           );
         })}
-      </div> : <div className="rounded-[14px] border border-[#eadfd5] bg-white px-4 py-5 text-center text-[12px] font-semibold text-slate-500">Categories will appear here when they are published.</div>}
+      </div> : <div className="rounded-[14px] border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white px-4 py-5 text-center text-[12px] font-semibold text-slate-500">Categories will appear here when they are published.</div>}
     </section>
   );
 }
@@ -475,18 +475,18 @@ function MobileOfferStrip({ navigate, maxDiscount, heading }) {
       <button
         type="button"
         onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId: 'sale' } }); navigate('/products?discount=1'); }}
-        className="flex w-full items-center justify-between rounded-[14px] bg-gradient-to-r from-[#fff0f4] via-[#fff8fb] to-[#fdf2e8] px-4 py-3.5 text-left shadow-[0_6px_18px_rgba(122,31,54,0.05)]"
+        className="flex w-full items-center justify-between rounded-[14px] bg-gradient-to-r from-[rgb(var(--app-secondary-rgb,255_240_244))] via-[rgb(var(--app-secondary-rgb,255_248_251))] to-[rgb(var(--app-secondary-rgb,253_242_232))] px-4 py-3.5 text-left shadow-[0_6px_18px_rgba(122,31,54,0.05)]"
       >
         <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-[#9d3154] shadow-sm">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-[rgb(var(--app-primary-rgb,157_49_84))] shadow-sm">
             <Sparkles className="h-4.5 w-4.5" strokeWidth={2} />
           </div>
           <div>
-            <p className="text-[12px] font-semibold text-[#1f2a44]">{heading || 'Current offers'}</p>
-            <p className="mt-0.5 text-[10px] text-[#6b7280]">Save up to {maxDiscount}% on selected products</p>
+            <p className="text-[12px] font-semibold text-[rgb(var(--app-text-rgb,31_42_68))]">{heading || 'Current offers'}</p>
+            <p className="mt-0.5 text-[10px] text-[rgb(var(--app-muted-rgb,107_114_128))]">Save up to {maxDiscount}% on selected products</p>
           </div>
         </div>
-        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#7a1f36]">Shop now</span>
+        <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,122_31_54))]">Shop now</span>
       </button>
     </section>
   );
@@ -500,9 +500,9 @@ function MobileEditorialBanners({ banners, navigate, heading }) {
     <section className="px-3 pb-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className="text-[15px] font-bold text-[#1f2a44]">{heading || 'Featured collections'}</h2>
+          <h2 className="text-[15px] font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">{heading || 'Featured collections'}</h2>
         </div>
-        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId: 'promotional' } }); navigate('/products'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#6b7280]">
+        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId: 'promotional' } }); navigate('/products'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-muted-rgb,107_114_128))]">
           View all
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
@@ -516,9 +516,9 @@ function MobileEditorialBanners({ banners, navigate, heading }) {
 
 function MobileBannerCard({ banner, navigate }) {
   const ref = useBannerEngagement(banner);
-  return <button ref={ref} type="button" onClick={() => openBanner(banner, navigate)} className="relative min-w-[78%] snap-center overflow-hidden rounded-[16px] bg-[#f4e9e0] text-left shadow-[0_6px_16px_rgba(15,23,42,0.05)] first:snap-start last:snap-end">
-    <div className="aspect-[0.92]">{banner.image ? <picture><source media="(max-width: 639px)" srcSet={normalizeImageUrl(banner.mobileImage || banner.image)} /><img loading="lazy" decoding="async" src={normalizeImageUrl(banner.image)} alt={banner.altText || banner.title || 'Collection'} className="h-full w-full object-cover" style={{ objectPosition: banner.focalPoint || 'center' }} /></picture> : <div className="flex h-full items-end bg-gradient-to-br from-[#f7e8de] to-[#ecd2c4] p-3"><span className="text-[11px] font-semibold text-[#6d1f34]">{banner.title || 'Nishaya edit'}</span></div>}</div>
-    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#3f2731]/85 via-[#3f2731]/25 to-transparent px-2.5 py-2"><p className="line-clamp-2 text-[10px] font-semibold leading-3 text-white">{banner.title || 'Featured collection'}</p></div>
+  return <button ref={ref} type="button" onClick={() => openBanner(banner, navigate)} className="relative min-w-[78%] snap-center overflow-hidden rounded-[16px] bg-[rgb(var(--app-secondary-rgb,244_233_224))] text-left shadow-[0_6px_16px_rgba(15,23,42,0.05)] first:snap-start last:snap-end">
+    <div className="aspect-[0.92]">{banner.image ? <picture><source media="(max-width: 639px)" srcSet={normalizeImageUrl(banner.mobileImage || banner.image)} /><img loading="lazy" decoding="async" src={normalizeImageUrl(banner.image)} alt={banner.altText || banner.title || 'Collection'} className="h-full w-full object-cover" style={{ objectPosition: banner.focalPoint || 'center' }} /></picture> : <div className="flex h-full items-end bg-gradient-to-br from-[rgb(var(--app-secondary-rgb,247_232_222))] to-[rgb(var(--app-secondary-rgb,236_210_196))] p-3"><span className="text-[11px] font-semibold text-[rgb(var(--app-primary-rgb,109_31_52))]">{banner.title || 'Nishaya edit'}</span></div>}</div>
+    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgb(var(--app-primary-deep-rgb,63_39_49)/0.85)] via-[rgb(var(--app-primary-deep-rgb,63_39_49)/0.25)] to-transparent px-2.5 py-2"><p className="line-clamp-2 text-[10px] font-semibold leading-3 text-white">{banner.title || 'Featured collection'}</p></div>
   </button>;
 }
 
@@ -527,10 +527,10 @@ function MobileProductSection({ sectionId, eyebrow, title, products = [], naviga
     <section className="px-3 pb-5" aria-labelledby={`mobile-section-${sectionId}`}>
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#9d3154]">{eyebrow}</p>
-          <h2 id={`mobile-section-${sectionId}`} className="mt-0.5 text-[18px] font-bold leading-tight text-[#1f2a44]">{title}</h2>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[rgb(var(--app-primary-rgb,157_49_84))]">{eyebrow}</p>
+          <h2 id={`mobile-section-${sectionId}`} className="mt-0.5 text-[18px] font-bold leading-tight text-[rgb(var(--app-text-rgb,31_42_68))]">{title}</h2>
         </div>
-        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId } }); navigate(viewAllPath || '/products'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#6b7280]">
+        <button type="button" onClick={() => { trackEvent('HOME_VIEW_ALL', { metadata: { sectionId } }); navigate(viewAllPath || '/products'); }} className="inline-flex min-h-11 items-center gap-1 px-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-muted-rgb,107_114_128))]">
           View all
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
@@ -538,9 +538,9 @@ function MobileProductSection({ sectionId, eyebrow, title, products = [], naviga
       {products.length ? (
         <MobileCompactProductGrid products={products} navigate={navigate} title={title} sectionId={sectionId} acceptingOrders={acceptingOrders} prefetchProduct={prefetchProduct} />
       ) : (
-        <div className="rounded-[14px] border border-[#eadfd5] bg-white px-4 py-5 text-center shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
+        <div className="rounded-[14px] border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white px-4 py-5 text-center shadow-[0_6px_18px_rgba(15,23,42,0.04)]">
           <p className="text-[12px] font-semibold leading-5 text-slate-500">{emptyMessage || `No ${eyebrow.toLowerCase()} are published yet.`}</p>
-          <button type="button" onClick={() => navigate('/products')} className="mt-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#7a1f36]">Browse all products</button>
+          <button type="button" onClick={() => navigate('/products')} className="mt-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,122_31_54))]">Browse all products</button>
         </div>
       )}
     </section>
@@ -594,13 +594,13 @@ function MobileCompactProductCard({ product, navigate, sectionTitle, sectionId, 
 
   return (
     <article data-mobile-product-card className="min-w-0 shrink-0 snap-start basis-[calc(50%-6px)]">
-      <div data-mobile-product-shell className="relative overflow-hidden rounded-[14px] bg-[#f6e8df] shadow-[0_4px_12px_rgba(15,23,42,0.06)]">
+      <div data-mobile-product-shell className="relative overflow-hidden rounded-[14px] bg-[rgb(var(--app-secondary-rgb,246_232_223))] shadow-[0_4px_12px_rgba(15,23,42,0.06)]">
           <button type="button" onPointerDown={() => prefetchProduct?.(productId)} onFocus={() => prefetchProduct?.(productId)} onClick={openProduct} className="absolute inset-0 z-[1]" aria-label={`View ${product.name}`} />
           <div data-mobile-product-media className="aspect-[0.92]">
             {image ? (
               <img loading="lazy" decoding="async" sizes="(max-width: 767px) 46vw, 30vw" src={normalizeImageUrl(image)} alt={product.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-br from-[#f8e2d7] to-[#f5d0d5] text-[12px] font-semibold text-[#7a1f36]">
+              <div className="flex h-full items-center justify-center bg-gradient-to-br from-[rgb(var(--app-secondary-rgb,248_226_215))] to-[rgb(var(--app-secondary-rgb,245_208_213))] text-[12px] font-semibold text-[rgb(var(--app-primary-rgb,122_31_54))]">
                 Nishaya
               </div>
             )}
@@ -637,7 +637,7 @@ function MobileCompactProductCard({ product, navigate, sectionTitle, sectionId, 
       </div>
       <div className="px-1 pt-2">
         <button type="button" onClick={openProduct} className="block min-h-11 w-full text-left">
-          <p data-card-field="title" className="truncate text-[11px] font-semibold leading-[1.3] text-[#1f2a44]" title={product.name}>{product.name}</p>
+          <p data-card-field="title" className="truncate text-[11px] font-semibold leading-[1.3] text-[rgb(var(--app-text-rgb,31_42_68))]" title={product.name}>{product.name}</p>
           <p className="mt-0.5 truncate text-[10px] text-slate-500" title={product.category}>{product.category}</p>
         </button>
         <div className="mt-2 flex items-start justify-between gap-2">
@@ -699,8 +699,8 @@ function MobileOrderPause({ message }) {
 }
 
 function MobileHomeError({ onRetry }) {
-  return <section className="grid min-h-[65vh] place-items-center bg-[#fcfaf7] px-6 pb-24 text-center">
-    <div><AlertCircle className="mx-auto h-8 w-8 text-[#9d3154]" /><h1 className="mt-4 text-xl font-bold text-[#1f2a44]">The store could not be loaded</h1><p className="mt-2 text-[12px] leading-5 text-slate-500">Check your connection and try again.</p><button type="button" onClick={onRetry} className="mt-5 min-h-11 rounded-[10px] bg-[#7a1f36] px-6 text-[12px] font-bold text-white">Try again</button></div>
+  return <section className="grid min-h-[65vh] place-items-center bg-[rgb(var(--app-background-rgb,252_250_247))] px-6 pb-24 text-center">
+    <div><AlertCircle className="mx-auto h-8 w-8 text-[rgb(var(--app-primary-rgb,157_49_84))]" /><h1 className="mt-4 text-xl font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">The store could not be loaded</h1><p className="mt-2 text-[12px] leading-5 text-slate-500">Check your connection and try again.</p><button type="button" onClick={onRetry} className="mt-5 min-h-11 rounded-[10px] bg-[rgb(var(--app-primary-rgb,122_31_54))] px-6 text-[12px] font-bold text-white">Try again</button></div>
   </section>;
 }
 

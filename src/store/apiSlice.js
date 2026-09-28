@@ -6,13 +6,14 @@ import { startMobileLoader, stopMobileLoader } from '../utils/mobileLoader';
 import { getOrCreateSessionId } from '../utils/attribution';
 import { isWebsitePreview } from '../config/websiteDesigner';
 import { isStorefrontRead, STOREFRONT_READ_TIMEOUT_MS } from './storefrontRequestPolicy';
+import { readLocal } from '../utils/safeStorage';
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getApiBaseUrl(),
   credentials: 'include',
   prepareHeaders: (headers, { getState, arg }) => {
     if (isWebsitePreview()) return headers;
-    const token = getState().auth.token || localStorage.getItem('samira_token');
+    const token = getState().auth.token || readLocal('samira_token');
     if (token) headers.set('authorization', `Bearer ${token}`);
     try {
       const sessionId = getOrCreateSessionId();
@@ -56,7 +57,7 @@ const sessionRefreshes = new WeakMap();
 function sessionCredentials(api) {
   return {
     userId: String(api.getState().auth.user?._id || api.getState().auth.user?.id || ''),
-    token: api.getState().auth.token || localStorage.getItem('samira_token') || '',
+    token: api.getState().auth.token || readLocal('samira_token') || '',
   };
 }
 

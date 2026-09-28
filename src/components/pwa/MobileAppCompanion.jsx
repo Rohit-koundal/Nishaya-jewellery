@@ -22,6 +22,7 @@ export default function MobileAppCompanion({ enabled = true }) {
   const [updateRegistration, setUpdateRegistration] = useState(null);
   const [installDismissed, setInstallDismissed] = useState(wasInstallDismissed);
   const reloading = useRef(false);
+  const updateRequested = useRef(false);
   const mobile = useMemo(() => window.matchMedia?.('(max-width: 767px)').matches ?? false, []);
   const badgeCount = Math.max(0, Number(cart?.itemCount || 0) + Number(notifications?.unreadCount || 0));
 
@@ -44,7 +45,9 @@ export default function MobileAppCompanion({ enabled = true }) {
     const onInstalled = () => setInstallEvent(null);
     const onUpdate = (event) => setUpdateRegistration(event.detail?.registration || null);
     const onControllerChange = () => {
-      if (reloading.current) return;
+      // clients.claim() also fires on the very first visit. Only an explicit
+      // update request may reload; initial installation must not interrupt boot.
+      if (!updateRequested.current || reloading.current) return;
       reloading.current = true;
       window.location.reload();
     };
@@ -84,7 +87,10 @@ export default function MobileAppCompanion({ enabled = true }) {
 
   const applyUpdate = () => {
     const worker = updateRegistration?.waiting;
-    if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
+    if (worker) {
+      updateRequested.current = true;
+      worker.postMessage({ type: 'SKIP_WAITING' });
+    }
     else window.location.reload();
   };
 

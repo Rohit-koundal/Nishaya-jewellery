@@ -6,7 +6,7 @@
   .sc-footer {
     display: block;
     color: var(--footer-text, #fff);
-    background: var(--footer-bg, #4b071b);
+    background: var(--footer-bg, var(--app-primary-deep, #4b071b));
     border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
@@ -209,7 +209,7 @@
     align-items: center;
     justify-content: center;
     border: 0;
-    background: #8a0f36;
+    background: var(--app-primary, #8a0f36);
     color: #fff;
   }
 

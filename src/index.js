@@ -7,10 +7,12 @@ import './index.css';
 import './styles/websiteCustomization.css';
 import App from './App.jsx';
 import { store } from './store/store';
+import StartupBoundary from './components/ui/StartupBoundary';
 
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${process.env.PUBLIC_URL || ''}/sw.js`).then((registration) => {
+    // Optional PWA setup must not prevent the main app from starting.
+    Promise.resolve().then(() => navigator.serviceWorker.register(`${process.env.PUBLIC_URL || ''}/sw.js`)).then((registration) => {
       const announceUpdate = () => window.dispatchEvent(new CustomEvent('samira:pwa-update', { detail: { registration } }));
       if (registration.waiting && navigator.serviceWorker.controller) announceUpdate();
       registration.addEventListener('updatefound', () => {
@@ -25,8 +27,10 @@ if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <StartupBoundary>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </StartupBoundary>
   </React.StrictMode>
 );

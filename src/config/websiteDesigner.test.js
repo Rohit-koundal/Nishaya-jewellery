@@ -21,7 +21,7 @@ test('legacy themes preserve mobile, tablet and existing desktop appearance', ()
   expect(validateDesignerConfig(config)).toEqual([]);
 });
 
-test('applying a preset changes appearance without replacing business content or handheld settings', () => {
+test('applying a preset shares its palette without replacing business content or handheld layout', () => {
   const original = mergeWebsiteConfig({
     branding: { websiteName: 'My store', logo: '/uploads/logo.png' },
     mobile: { enabled: true, columns: 1 },
@@ -32,7 +32,9 @@ test('applying a preset changes appearance without replacing business content or
   });
   const before = JSON.stringify(original);
   const result = applyAppearancePreset(original, { colors: { primary: '#31594c' }, theme: { preset: 'sage' } });
-  for (const key of ['branding', 'mobile', 'tablet', 'homepage', 'layout']) expect(result[key]).toEqual(original[key]);
+  for (const key of ['branding', 'tablet', 'homepage', 'layout']) expect(result[key]).toEqual(original[key]);
+  expect(result.mobile).toEqual({ ...original.mobile, headerBackground: result.header.background,
+    headerText: result.header.textColor, pageBackground: result.colors.background });
   expect(result.footer.contactEmail).toBe(original.footer.contactEmail);
   expect(result.footer.menus).toEqual(original.footer.menus);
   expect(result.header.announcementText).toBe('My announcement');

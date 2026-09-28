@@ -9,7 +9,7 @@ export default function Loader({ label = 'Loading...' }) {
           <span className="relative block h-10 w-10" aria-hidden="true">
             <span className="absolute inset-0 rounded-full border-[3px] border-[#f3d3da]" />
             <span
-              className="absolute inset-0 rounded-full border-[3px] border-transparent border-r-[#6d1f34] border-t-[#6d1f34]"
+              className="absolute inset-0 rounded-full border-[3px] border-transparent border-r-[rgb(var(--app-primary-rgb,109_31_52))] border-t-[rgb(var(--app-primary-rgb,109_31_52))]"
               style={{ animation: 'samira-loader-spin 0.85s linear infinite', willChange: 'transform' }}
             />
           </span>

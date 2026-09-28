@@ -1,7 +1,7 @@
 @media (max-width: 1023px) {
   .sc-mobile-checkout {
-    --checkout-primary: var(--rose, #ff5f86);
-    --checkout-ink: var(--text-body, #282c3f);
+    --checkout-primary: var(--rose, var(--app-primary, #ff5f86));
+    --checkout-ink: var(--text-body, var(--app-text, #282c3f));
     --checkout-muted: #64748b;
     --checkout-border: #e8edf2;
     font-family: var(--font-auth-app, 'Figtree', sans-serif);
@@ -36,7 +36,7 @@
   .sc-mobile-checkout__address-copy { min-width: 0; flex: 1; overflow-wrap: anywhere; }
   .sc-mobile-checkout__address-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
   .sc-mobile-checkout__address-name strong { font-size: 14px; font-weight: 650; }
-  .sc-mobile-checkout__address-name span { font-size: 10px; background: var(--blush, #fff0f4); color: var(--checkout-primary); padding: 3px 8px; border-radius: 6px; }
+  .sc-mobile-checkout__address-name span { font-size: 10px; background: var(--blush, var(--app-secondary, #fff0f4)); color: var(--checkout-primary); padding: 3px 8px; border-radius: 6px; }
   .sc-mobile-checkout__address-name small { color: var(--checkout-muted); font-size: 10px; }
   .sc-mobile-checkout__address address { font-style: normal; color: var(--checkout-muted); margin-top: 10px; line-height: 1.65; font-size: 12px; }
   .sc-mobile-checkout__phone { font-size: 12px; margin-top: 10px; }
@@ -71,7 +71,7 @@
   .sc-mobile-checkout__method > span:first-of-type { flex: 1; min-width: 0; }
   .sc-mobile-checkout__method strong { display: block; font-size: 13px; font-weight: 650; }
   .sc-mobile-checkout__method small { display: block; font-size: 11px; font-weight: 400; color: var(--checkout-muted); line-height: 1.6; margin-top: 5px; }
-  .sc-mobile-checkout__method[aria-pressed=true] { border-color: var(--checkout-primary); background: var(--blush, #fff0f4); }
+  .sc-mobile-checkout__method[aria-pressed=true] { border-color: var(--checkout-primary); background: var(--blush, var(--app-secondary, #fff0f4)); }
   .sc-mobile-checkout__method:disabled { opacity: .55; }
   .sc-mobile-checkout__card > .body-text { font-size: 12px; line-height: 1.6; border-radius: 10px; padding: 12px; }
   .sc-mobile-checkout__price-row, .sc-mobile-checkout__total { display: flex; justify-content: space-between; gap: 16px; margin-top: 13px; font-size: 12px; color: var(--checkout-muted); }

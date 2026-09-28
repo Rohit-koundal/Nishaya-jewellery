@@ -104,9 +104,9 @@ export default function CouponForm({ coupon, products = [], categories = [], cus
 
   return (
     <form onSubmit={submit} className="admin-card overflow-hidden">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eadfd5] bg-gradient-to-r from-[#fffaf7] to-white px-5 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[rgb(var(--app-border-rgb,234_223_213))] bg-gradient-to-r from-[#fffaf7] to-white px-5 py-4">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0f4] text-wine"><Tag className="h-5 w-5" /></span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-wine"><Tag className="h-5 w-5" /></span>
           <div>
             <h2 className="text-base font-black text-charcoal">{editing ? `Edit ${coupon.code}` : 'Create a coupon'}</h2>
             <p className="mt-1 text-xs text-slate-500">Configure the offer, eligibility, usage and storefront visibility.</p>
@@ -116,7 +116,7 @@ export default function CouponForm({ coupon, products = [], categories = [], cus
       </div>
 
       <div className="grid gap-6 p-5 xl:grid-cols-2">
-        {!editing ? <div className="xl:col-span-2"><p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">Start with a proven offer</p><div className="flex gap-2 overflow-x-auto pb-1">{COUPON_PRESETS.map(([label, preset]) => <button key={label} type="button" onClick={() => applyPreset(preset)} className="min-w-max rounded-full border border-[#eadfd5] bg-white px-3 py-2 text-xs font-bold text-wine hover:bg-[#fff0f4]">{label}</button>)}</div></div> : null}
+        {!editing ? <div className="xl:col-span-2"><p className="mb-2 text-xs font-black uppercase tracking-wider text-slate-500">Start with a proven offer</p><div className="flex gap-2 overflow-x-auto pb-1">{COUPON_PRESETS.map(([label, preset]) => <button key={label} type="button" onClick={() => applyPreset(preset)} className="min-w-max rounded-full border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white px-3 py-2 text-xs font-bold text-wine hover:bg-[rgb(var(--app-secondary-rgb,255_240_244))]">{label}</button>)}</div></div> : null}
         <FormSection title="Offer details" note="Shown to customers in the coupon picker.">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Coupon code" required hint={editing && Number(coupon.usedCount || 0) > 0 ? 'Locked because this coupon has redemption history' : 'Letters, numbers, dash and underscore'}><div className="flex gap-2"><input value={form.code} disabled={editing && Number(coupon.usedCount || 0) > 0} onBlur={checkCode} onChange={(event) => { update('code', sanitizeCode(event.target.value)); setCodeAvailability(null); }} maxLength={32} className="admin-coupon-input min-w-0 flex-1 uppercase disabled:bg-slate-100" placeholder="NISHAYA20" />{!editing ? <button type="button" onClick={() => { update('code', uniqueCode(form.title || 'SAVE')); setCodeAvailability(null); }} className="rounded-xl border border-slate-200 px-3 text-xs font-black text-wine">Generate</button> : null}</div>{codeAvailability ? <span className={`mt-1 block text-[10px] font-bold ${codeAvailability.available ? 'text-emerald-700' : codeAvailability.checking ? 'text-slate-400' : 'text-rose'}`}>{codeAvailability.checking ? 'Checking code...' : codeAvailability.available ? 'Code is available' : 'Code is already in use'}</span> : null}</Field>
@@ -179,7 +179,7 @@ export default function CouponForm({ coupon, products = [], categories = [], cus
       {warnings.length ? <div className="mx-5 mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"><strong className="text-xs text-amber-900">Review before publishing</strong>{warnings.map((warning) => <p key={warning} className="mt-1 text-xs text-amber-800">{warning}</p>)}</div> : null}
 
       {message ? <p role="status" className={`mx-5 mb-4 rounded-xl px-4 py-3 text-sm font-bold ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose/10 text-rose'}`}>{message.text}</p> : null}
-      <div className="flex flex-wrap justify-end gap-3 border-t border-[#eadfd5] bg-[#fffdfb] px-5 py-4">
+      <div className="flex flex-wrap justify-end gap-3 border-t border-[rgb(var(--app-border-rgb,234_223_213))] bg-[#fffdfb] px-5 py-4">
         {editing ? <button type="button" onClick={onCancel} disabled={saving} className="admin-btn-ghost"><X className="h-4 w-4" /> Cancel edit</button> : null}
         <button disabled={saving} className="admin-btn disabled:opacity-60"><Save className="h-4 w-4" /> {saving ? 'Saving...' : editing ? 'Update Coupon' : 'Create Coupon'}</button>
       </div>
@@ -188,7 +188,7 @@ export default function CouponForm({ coupon, products = [], categories = [], cus
 }
 
 function FormSection({ title, note, children }) {
-  return <fieldset className="rounded-2xl border border-[#eadfd5] p-4"><legend className="px-2 text-sm font-black text-charcoal">{title}</legend><p className="mb-4 text-xs text-slate-500">{note}</p>{children}</fieldset>;
+  return <fieldset className="rounded-2xl border border-[rgb(var(--app-border-rgb,234_223_213))] p-4"><legend className="px-2 text-sm font-black text-charcoal">{title}</legend><p className="mb-4 text-xs text-slate-500">{note}</p>{children}</fieldset>;
 }
 
 function Field({ label, hint, required, className = '', children }) {

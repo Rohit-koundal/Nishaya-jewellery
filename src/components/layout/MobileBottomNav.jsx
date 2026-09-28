@@ -18,7 +18,7 @@ export default function MobileBottomNav({ active, navigate }) {
   const storeSlug = parseStoreSlug(active || '');
   const counts = { '/wishlist': wishlist?.items?.length || 0, '/cart': cart?.itemCount || 0 };
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+    <nav data-mobile-navigation className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       <div className="grid h-16 grid-cols-6">
         {tabs.map(([path, label, icon]) => (
           <button key={label} onClick={() => navigate(storefrontPath(path, storeSlug))} aria-current={active === storefrontPath(path, storeSlug) ? 'page' : undefined} aria-label={counts[path] ? `${label}, ${counts[path]} items` : label} className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold ${active === storefrontPath(path, storeSlug) ? 'text-rose' : 'text-slate-500'}`}>

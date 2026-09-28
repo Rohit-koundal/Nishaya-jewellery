@@ -48,9 +48,9 @@ export default function CouponSelector({
 
   return (
     <>
-      <section className="overflow-hidden rounded-2xl border border-[#ead8cb] bg-white shadow-[0_8px_24px_rgba(70,35,20,0.05)]">
+      <section className="overflow-hidden rounded-2xl border border-[rgb(var(--app-border-rgb,234_216_203))] bg-white shadow-[0_8px_24px_rgba(70,35,20,0.05)]">
         <button type="button" onClick={() => setOpen(true)} className="flex w-full items-center gap-3 px-4 py-4 text-left">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff0f4] text-[#b31246]"><Tag className="h-5 w-5" /></span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-[#b31246]"><Tag className="h-5 w-5" /></span>
           <span className="min-w-0 flex-1">
             <span className="block text-[13px] font-black text-charcoal">Apply Coupons</span>
             <span className="mt-1 block truncate text-[11px] text-slate-500">
@@ -87,7 +87,7 @@ export default function CouponSelector({
                 <input value={manualCode} onChange={(event) => setManualCode(event.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32))} onKeyDown={(event) => { if (event.key === 'Enter') apply(manualCode); }} placeholder="Enter coupon code" className="h-12 min-w-0 flex-1 px-3 text-[13px] font-bold uppercase outline-none" />
                 <button type="button" onClick={() => apply(manualCode)} disabled={!manualCode.trim() || !!busyCode} className="w-24 border-l border-slate-200 text-[12px] font-black uppercase text-[#ff3e6c] disabled:text-slate-300">{busyCode === manualCode ? 'Checking' : 'Apply'}</button>
               </div>
-              {feedback ? <p role="status" className="mt-3 rounded-lg bg-[#fff0f4] px-3 py-2 text-[11px] font-semibold leading-4 text-[#b31246]">{feedback}</p> : null}
+              {feedback ? <p role="status" className="mt-3 rounded-lg bg-[rgb(var(--app-secondary-rgb,255_240_244))] px-3 py-2 text-[11px] font-semibold leading-4 text-[#b31246]">{feedback}</p> : null}
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(24px,env(safe-area-inset-bottom))] md:px-5">
@@ -103,10 +103,10 @@ export default function CouponSelector({
                       <article key={coupon.code} className={`overflow-hidden rounded-2xl border bg-white ${applied ? 'border-emerald-400' : eligible ? 'border-slate-200' : 'border-slate-200 opacity-70'}`}>
                         <div className="p-4">
                           <div className="flex items-start gap-3">
-                            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${eligible ? 'bg-[#fff0f4] text-[#ff3e6c]' : 'bg-slate-100 text-slate-400'}`}><BadgePercent className="h-5 w-5" /></span>
+                            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${eligible ? 'bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-[#ff3e6c]' : 'bg-slate-100 text-slate-400'}`}><BadgePercent className="h-5 w-5" /></span>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-3">
-                                <div><span className="inline-flex rounded border border-dashed border-[#b31246] px-2 py-1 text-[12px] font-black tracking-[.04em] text-[#8a0f36]">{coupon.code}</span>{coupon.code === bestCoupon?.code ? <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">Best saving</span> : null}</div>
+                                <div><span className="inline-flex rounded border border-dashed border-[#b31246] px-2 py-1 text-[12px] font-black tracking-[.04em] text-[rgb(var(--app-primary-rgb,138_15_54))]">{coupon.code}</span>{coupon.code === bestCoupon?.code ? <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">Best saving</span> : null}</div>
                                 {applied ? <span className="text-[11px] font-black text-emerald-700">Applied</span> : <button type="button" onClick={() => apply(coupon.code)} disabled={!eligible || !!busyCode} className="text-[11px] font-black uppercase text-[#ff3e6c] disabled:text-slate-300">{busyCode === coupon.code ? 'Applying...' : 'Apply'}</button>}
                               </div>
                               <h4 className="mt-3 text-[13px] font-black leading-5 text-charcoal">{coupon.title || formatCouponOffer(coupon)}</h4>

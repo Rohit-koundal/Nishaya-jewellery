@@ -326,7 +326,7 @@ export default function Login({ route = '/login' }) {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <div className="absolute right-4 top-4 rounded-2xl bg-[#ff5f86] px-3 py-2 text-center text-white shadow-lg">
+          <div className="absolute right-4 top-4 rounded-2xl bg-[rgb(var(--app-primary-rgb,255_95_134))] px-3 py-2 text-center text-white shadow-lg">
             <p className="text-[8px] font-bold leading-none">UP TO</p>
             <p className="text-[13px] font-extrabold leading-none">₹200</p>
           </div>
@@ -355,7 +355,7 @@ export default function Login({ route = '/login' }) {
                   <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">{demoOtp ? 'Demo verification for' : 'Sent to'} {maskPhone(phone)}</p>
                 </div>
               </div>
-              {demoOtp && <p role="status" className="rounded-xl bg-[#fff0f5] px-4 py-3 text-sm text-wine">Demo mode: enter <strong>{demoOtp}</strong>. No SMS is needed.</p>}
+              {demoOtp && <p role="status" className="rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_245))] px-4 py-3 text-sm text-wine">Demo mode: enter <strong>{demoOtp}</strong>. No SMS is needed.</p>}
               <div className="grid grid-cols-6 gap-2">
                 {otp.map((digit, index) => (
                   <input
@@ -370,7 +370,7 @@ export default function Login({ route = '/login' }) {
                     onPaste={(event) => pasteOtp(event, index)}
                     onFocus={(event) => event.target.select()}
                     onClick={(event) => event.currentTarget.select()}
-                    className="h-10 w-full rounded-lg border border-slate-300 text-center text-[14px] font-semibold text-[#2f3851] outline-none focus:border-[#ff5f86] focus:ring-2 focus:ring-[#ff5f86]/10 sm:text-[15px]"
+                    className="h-10 w-full rounded-lg border border-slate-300 text-center text-[14px] font-semibold text-[#2f3851] outline-none focus:border-[rgb(var(--app-primary-rgb,255_95_134))] focus:ring-2 focus:ring-[rgb(var(--app-primary-rgb,255_95_134)/0.1)] sm:text-[15px]"
                     inputMode="numeric"
                     pattern="[0-9]*"
                     maxLength={index === 0 ? 6 : 1}
@@ -383,12 +383,12 @@ export default function Login({ route = '/login' }) {
               <Button
                 type="submit"
                 disabled={loading || !isOtpComplete}
-                className={`h-10 w-full rounded-xl text-white disabled:opacity-60 ${isOtpComplete ? 'bg-[#ff5f86] hover:bg-[#ff4c7b]' : 'bg-[#a8a8b3] hover:bg-[#a8a8b3]'}`}
+                className={`h-10 w-full rounded-xl text-white disabled:opacity-60 ${isOtpComplete ? 'bg-[rgb(var(--app-primary-rgb,255_95_134))] hover:bg-[#ff4c7b]' : 'bg-[#a8a8b3] hover:bg-[#a8a8b3]'}`}
               >
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </Button>
               <div className="flex flex-col items-start gap-4">
-                <button type="button" onClick={doResend} disabled={!!cooldown || resending} className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#ff5f86] disabled:text-slate-400 sm:text-[12px]">
+                <button type="button" onClick={doResend} disabled={!!cooldown || resending} className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[rgb(var(--app-primary-rgb,255_95_134))] disabled:text-slate-400 sm:text-[12px]">
                   {resending ? 'Sending...' : 'Resend OTP'}
                 </button>
                 <HelpLink />
@@ -421,7 +421,7 @@ export default function Login({ route = '/login' }) {
               <Button
                 type="submit"
                 disabled={loading || !canSubmitPhone}
-                className={`h-10 w-full rounded-xl text-white disabled:opacity-60 ${canSubmitPhone ? 'bg-[#ff5f86] hover:bg-[#ff4c7b]' : 'bg-[#a8a8b3] hover:bg-[#a8a8b3]'}`}
+                className={`h-10 w-full rounded-xl text-white disabled:opacity-60 ${canSubmitPhone ? 'bg-[rgb(var(--app-primary-rgb,255_95_134))] hover:bg-[#ff4c7b]' : 'bg-[#a8a8b3] hover:bg-[#a8a8b3]'}`}
               >
                 {loading ? 'Sending...' : 'Continue'}
               </Button>
@@ -487,7 +487,7 @@ function PhoneField({ value, onChange, countryCode = '+91' }) {
 
 function PolicyLink({ href, children }) {
   return (
-    <a href={href} className="font-semibold text-[#ff5f86] underline-offset-2 hover:underline">
+    <a href={href} className="font-semibold text-[rgb(var(--app-primary-rgb,255_95_134))] underline-offset-2 hover:underline">
       {children}
     </a>
   );
@@ -497,7 +497,7 @@ function HelpLink() {
   return (
     <p className="flex items-center gap-2 text-[11px] font-semibold text-[#2f3851] sm:text-[12px]">
       Having trouble logging in?
-      <a href="/contact" className="inline-flex items-center gap-1 text-[#ff5f86] underline-offset-2 hover:underline">
+      <a href="/contact" className="inline-flex items-center gap-1 text-[rgb(var(--app-primary-rgb,255_95_134))] underline-offset-2 hover:underline">
         Get help <HelpCircle className="h-4 w-4" />
       </a>
     </p>

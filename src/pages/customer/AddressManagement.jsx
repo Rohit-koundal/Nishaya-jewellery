@@ -245,18 +245,18 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
   }, [form.pincode, setForm]);
 
   return (
-    <Card as="form" onSubmit={onSubmit} className="sc-address-form overflow-hidden border-0 bg-[#fffaf2] shadow-none">
-      <div className="flex items-center justify-between border-b border-[#ead8cb] bg-[#fffaf2] px-2 py-2">
+    <Card as="form" onSubmit={onSubmit} className="sc-address-form overflow-hidden border-0 bg-[rgb(var(--app-background-rgb,255_250_242))] shadow-none">
+      <div className="flex items-center justify-between border-b border-[rgb(var(--app-border-rgb,234_216_203))] bg-[rgb(var(--app-background-rgb,255_250_242))] px-2 py-2">
         <button
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="grid h-10 w-10 place-items-center rounded-full text-[#6d1f34] hover:bg-white"
+          className="grid h-10 w-10 place-items-center rounded-full text-[rgb(var(--app-primary-rgb,109_31_52))] hover:bg-white"
           aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <CardTitle className="flex-1 text-center text-[16px] font-semibold text-[#6d1f34]">
+        <CardTitle className="flex-1 text-center text-[16px] font-semibold text-[rgb(var(--app-primary-rgb,109_31_52))]">
           {editing ? 'Update Address' : 'Add New Address'}
         </CardTitle>
         <div className="h-10 w-10" />
@@ -264,7 +264,7 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
 
       <CardContent className="space-y-6 px-4 py-5 pb-5">
         <div className="space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#b88945]">Contact details</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[rgb(var(--app-accent-rgb,184_137_69))]">Contact details</p>
           <LabeledField icon={UserRound} label="Full name">
             <TextInput autoComplete="name" value={form.fullName || ''} onChange={(event) => update('fullName', event.target.value)} placeholder="Name as on the parcel" disabled={saving} required />
           </LabeledField>
@@ -290,8 +290,8 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
           </LabeledField>
         </div>
 
-        <div className="space-y-3 border-t border-[#ead8cb] pt-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#b88945]">Delivery location</p>
+        <div className="space-y-3 border-t border-[rgb(var(--app-border-rgb,234_216_203))] pt-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[rgb(var(--app-accent-rgb,184_137_69))]">Delivery location</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <LabeledField icon={Building2} label="State">
               <Select value={form.state || ''} onChange={(event) => selectState(event.target.value)} disabled={saving} required>
@@ -333,8 +333,8 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
           </LabeledField>
         </div>
 
-        <div className="space-y-3 border-t border-[#ead8cb] pt-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#b88945]">Address type</p>
+        <div className="space-y-3 border-t border-[rgb(var(--app-border-rgb,234_216_203))] pt-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[rgb(var(--app-accent-rgb,184_137_69))]">Address type</p>
           <div className="grid grid-cols-2 gap-3">
             {[
               { value: 'Home', label: 'Home', desc: 'Personal deliveries', icon: Home },
@@ -350,10 +350,10 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
                   onClick={() => update('addressType', option.value)}
                   disabled={saving}
                   className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition ${
-                    active ? 'border-[#6d1f34] bg-white shadow-[0_0_0_1px_#6d1f34]' : 'border-[#ead8cb] bg-white'
+                    active ? 'border-[rgb(var(--app-primary-rgb,109_31_52))] bg-white shadow-[0_0_0_1px_#6d1f34]' : 'border-[rgb(var(--app-border-rgb,234_216_203))] bg-white'
                   }`}
                 >
-                  <span className={`grid h-9 w-9 place-items-center rounded-full ${active ? 'bg-[#6d1f34] text-[#fffaf2]' : 'bg-[#fffaf2] text-[#b88945]'}`}>
+                  <span className={`grid h-9 w-9 place-items-center rounded-full ${active ? 'bg-[rgb(var(--app-primary-rgb,109_31_52))] text-[rgb(var(--app-background-rgb,255_250_242))]' : 'bg-[rgb(var(--app-background-rgb,255_250_242))] text-[rgb(var(--app-accent-rgb,184_137_69))]'}`}>
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0">
@@ -364,19 +364,19 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
               );
             })}
           </div>
-          <label className="flex items-center gap-2 rounded-xl border border-[#ead8cb] bg-white px-3 py-3 text-[12px] text-slate-600">
-            <input type="checkbox" checked={form.isDefault} onChange={(event) => update('isDefault', event.target.checked)} className="accent-[#6d1f34]" disabled={saving} />
+          <label className="flex items-center gap-2 rounded-xl border border-[rgb(var(--app-border-rgb,234_216_203))] bg-white px-3 py-3 text-[12px] text-slate-600">
+            <input type="checkbox" checked={form.isDefault} onChange={(event) => update('isDefault', event.target.checked)} className="accent-[rgb(var(--app-primary-rgb,109_31_52))]" disabled={saving} />
             Make this my default address
           </label>
         </div>
 
-        {message && <p role="alert" className="error-text font-semibold text-[#6d1f34]">{message}</p>}
+        {message && <p role="alert" className="error-text font-semibold text-[rgb(var(--app-primary-rgb,109_31_52))]">{message}</p>}
 
-        <div className="grid grid-cols-2 gap-3 border-t border-[#ead8cb] pt-5">
-          <Button type="button" variant="secondary" onClick={onCancel} disabled={saving} className="h-11 rounded-xl border border-[#ead8cb] bg-white text-[#3f2a22]">
+        <div className="grid grid-cols-2 gap-3 border-t border-[rgb(var(--app-border-rgb,234_216_203))] pt-5">
+          <Button type="button" variant="secondary" onClick={onCancel} disabled={saving} className="h-11 rounded-xl border border-[rgb(var(--app-border-rgb,234_216_203))] bg-white text-[#3f2a22]">
             Cancel
           </Button>
-          <Button type="submit" disabled={saving} className="h-11 rounded-xl bg-[#6d1f34] text-[#fffaf2] hover:bg-[#5a192b]">
+          <Button type="submit" disabled={saving} className="h-11 rounded-xl bg-[rgb(var(--app-primary-rgb,109_31_52))] text-[rgb(var(--app-background-rgb,255_250_242))] hover:bg-[#5a192b]">
             {saving ? 'Saving...' : editing ? 'Update Address' : 'Save Address'}
           </Button>
         </div>
@@ -388,11 +388,11 @@ export function AddressForm({ form, setForm, onSubmit, message, editing, onCance
 function LabeledField({ icon: Icon, label, children }) {
   return (
     <label className="sc-address-form__field block">
-      <span className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-[#6d1f34]">
-        <Icon className="h-3.5 w-3.5 text-[#b88945]" />
+      <span className="mb-1.5 flex items-center gap-2 text-[12px] font-semibold text-[rgb(var(--app-primary-rgb,109_31_52))]">
+        <Icon className="h-3.5 w-3.5 text-[rgb(var(--app-accent-rgb,184_137_69))]" />
         {label}
       </span>
-      <div className="rounded-xl border border-[#ead8cb] bg-white px-3 py-1 [&_input]:border-0 [&_input]:px-0 [&_input]:shadow-none [&_input:focus]:ring-0 [&_select]:border-0 [&_select]:px-0 [&_select]:shadow-none [&_select:focus]:ring-0">
+      <div className="rounded-xl border border-[rgb(var(--app-border-rgb,234_216_203))] bg-white px-3 py-1 [&_input]:border-0 [&_input]:px-0 [&_input]:shadow-none [&_input:focus]:ring-0 [&_select]:border-0 [&_select]:px-0 [&_select]:shadow-none [&_select:focus]:ring-0">
         {children}
       </div>
     </label>

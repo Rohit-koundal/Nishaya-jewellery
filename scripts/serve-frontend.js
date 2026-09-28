@@ -25,7 +25,7 @@ app.use(express.static(buildDir, {
   index: false,
   maxAge: '1y',
   setHeaders(res, filePath) {
-    if (filePath.endsWith('index.html') || filePath.endsWith('404.html')) {
+    if (['index.html', '404.html', 'sw.js', 'startup.js', 'manifest.json'].includes(path.basename(filePath))) {
       res.setHeader('Cache-Control', 'no-cache');
     }
   },
@@ -33,6 +33,9 @@ app.use(express.static(buildDir, {
 
 app.get('*', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
+  if (req.path.startsWith('/static/') || ['.js', '.css'].includes(path.extname(req.path))) {
+    return res.status(404).type('text').send('Asset not found');
+  }
   res.sendFile(indexFile);
 });
 

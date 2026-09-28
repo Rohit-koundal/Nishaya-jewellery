@@ -91,7 +91,7 @@ export default function MobileSearchOverlay({ initialValue = '', navigate, onClo
         <button type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-slate-600" aria-label="Close search">
           <ArrowLeft className="h-5 w-5" strokeWidth={2} />
         </button>
-        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl bg-[#f4f1ec] px-3 text-slate-500 ring-1 ring-transparent focus-within:ring-[#7a1f36]/25">
+        <label className="flex h-11 min-w-0 flex-1 items-center gap-2 rounded-xl bg-[#f4f1ec] px-3 text-slate-500 ring-1 ring-transparent focus-within:ring-[rgb(var(--app-primary-rgb,122_31_54)/0.25)]">
           <Search className="h-4.5 w-4.5 shrink-0" strokeWidth={2} />
           <input
             ref={inputRef}
@@ -134,7 +134,7 @@ export default function MobileSearchOverlay({ initialValue = '', navigate, onClo
             <div className="divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white">
               {results.map((product) => <SearchResult key={product.id || product.slug} product={product} onClick={() => openProduct(product)} />)}
             </div>
-            <button type="button" onClick={() => submit()} className="mt-3 h-12 w-full rounded-xl border border-[#eadfd5] bg-[#fffaf5] text-[11px] font-black uppercase tracking-[.08em] text-wine">View all results for “{query.trim()}”</button>
+            <button type="button" onClick={() => submit()} className="mt-3 h-12 w-full rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-[#fffaf5] text-[11px] font-black uppercase tracking-[.08em] text-wine">View all results for “{query.trim()}”</button>
           </div>
         ) : searched ? (
           <div className="grid min-h-64 place-items-center px-8 text-center"><div><h2 className="text-[14px] font-black text-charcoal">No products found</h2><p className="mt-2 text-[11px] leading-5 text-slate-500">Try a product name, category, fabric, or a shorter search.</p></div></div>
@@ -148,7 +148,7 @@ function SearchResult({ product, onClick }) {
   const image = normalizeImageUrl(getPrimaryImageUrl(product.images));
   const price = Number(product.sellingPrice ?? product.price ?? 0);
   return <button type="button" onClick={onClick} className="flex w-full items-center gap-3 p-3 text-left">
-    <span className="h-16 w-[52px] shrink-0 overflow-hidden rounded-xl bg-[#f6e8df]">{image ? <img src={image} alt="" className="h-full w-full object-cover object-top" /> : null}</span>
+    <span className="h-16 w-[52px] shrink-0 overflow-hidden rounded-xl bg-[rgb(var(--app-secondary-rgb,246_232_223))]">{image ? <img src={image} alt="" className="h-full w-full object-cover object-top" /> : null}</span>
     <span className="min-w-0 flex-1"><strong className="block truncate text-[12px] text-charcoal">{product.name}</strong><small className="mt-1 block truncate text-[10px] text-slate-500">{product.category || product.fabric || 'Collection'}</small><span className="mt-1.5 block text-[12px] font-black text-charcoal">Rs. {price.toLocaleString('en-IN')}</span></span>
     <span className="text-lg text-slate-300" aria-hidden="true">›</span>
   </button>;

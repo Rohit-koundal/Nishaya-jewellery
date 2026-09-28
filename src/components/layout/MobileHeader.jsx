@@ -134,7 +134,7 @@ export default function MobileHeader({ navigate, route = '/' }) {
             aria-modal="true"
             aria-label="Shopping menu"
           >
-            <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#5f102d] via-wine to-[#a7164b] px-5 pb-5 pt-[calc(env(safe-area-inset-top)+18px)] text-white">
+            <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[rgb(var(--app-primary-deep-rgb,95_16_45))] via-wine to-[rgb(var(--app-primary-rgb,167_22_75))] px-5 pb-5 pt-[calc(env(safe-area-inset-top)+18px)] text-white">
               <div className="pointer-events-none absolute -right-10 -top-12 z-0 h-36 w-36 rounded-full border-[24px] border-white/5" />
               <button
                 type="button"
@@ -201,7 +201,7 @@ export default function MobileHeader({ navigate, route = '/' }) {
               <div className="px-5 pb-2 pt-5">
                 <p className="text-[9px] font-bold uppercase tracking-[.16em] text-slate-500">{brand.websiteName}</p>
                 <p className="mt-1 text-[10px] font-medium text-slate-400">{brand.tagline}</p>
-                {announcementVisible && headerConfig.announcementText && (headerConfig.announcementLink ? <button type="button" onClick={() => go(headerConfig.announcementLink)} className="mt-3 w-full rounded-lg bg-[#faf2ee] p-3 text-left text-[11px] font-bold text-wine">{headerConfig.announcementText}</button> : <p className="mt-3 rounded-lg bg-[#faf2ee] p-3 text-[11px] text-wine">{headerConfig.announcementText}</p>)}
+                {announcementVisible && headerConfig.announcementText && (headerConfig.announcementLink ? <button type="button" onClick={() => go(headerConfig.announcementLink)} className="mt-3 w-full rounded-lg bg-[rgb(var(--app-secondary-rgb,250_242_238))] p-3 text-left text-[11px] font-bold text-wine">{headerConfig.announcementText}</button> : <p className="mt-3 rounded-lg bg-[rgb(var(--app-secondary-rgb,250_242_238))] p-3 text-[11px] text-wine">{headerConfig.announcementText}</p>)}
               </div>
             </nav>
           </aside>
@@ -224,16 +224,16 @@ function DrawerLink({ icon: RowIcon, label, badge, accent = false, compact = fal
     <button
       type="button"
       onClick={onClick}
-      className={`group flex w-full items-center gap-3 px-5 text-left transition-colors active:bg-[#fff2f6] ${compact ? 'h-10' : 'h-12'} ${accent ? 'text-[#e11d5b]' : 'text-charcoal'}`}
+      className={`group flex w-full items-center gap-3 px-5 text-left transition-colors active:bg-[#fff2f6] ${compact ? 'h-10' : 'h-12'} ${accent ? 'text-[rgb(var(--app-primary-rgb,225_29_91))]' : 'text-charcoal'}`}
     >
       {RowIcon ? (
-        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${accent ? 'bg-[#fff0f5] text-[#e11d5b]' : 'bg-[#f7f4f2] text-slate-500'}`}>
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${accent ? 'bg-[rgb(var(--app-secondary-rgb,255_240_245))] text-[rgb(var(--app-primary-rgb,225_29_91))]' : 'bg-[rgb(var(--app-secondary-rgb,247_244_242))] text-slate-500'}`}>
           <RowIcon className="h-4 w-4" strokeWidth={1.9} />
         </span>
-      ) : <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#d7c6cc]" />}
+      ) : <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[rgb(var(--app-border-rgb,215_198_204))]" />}
       <span className={`min-w-0 flex-1 truncate ${accent ? 'font-black' : 'font-semibold'} ${compact ? 'text-[13px]' : 'text-[13px]'}`}>{label}</span>
       {badge !== undefined && badge !== '' ? (
-        <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${accent ? 'bg-[#e11d5b] text-white' : 'bg-[#fff0f5] text-[#d31352]'}`}>{badge}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${accent ? 'bg-[rgb(var(--app-primary-rgb,225_29_91))] text-white' : 'bg-[rgb(var(--app-secondary-rgb,255_240_245))] text-[rgb(var(--app-primary-rgb,211_19_82))]'}`}>{badge}</span>
       ) : null}
       <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-active:translate-x-0.5" />
     </button>

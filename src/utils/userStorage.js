@@ -1,3 +1,5 @@
+import { readLocal, removeLocal, writeLocal } from './safeStorage';
+
 export function createStoragePlan(prefix, user) {
   const userId = getUserId(user);
   const phone = normalizePhone(user?.phone);
@@ -20,7 +22,7 @@ export function createStoragePlan(prefix, user) {
 
 export function readScopedJson(storageName, legacyStorageNames = [], fallbackValue) {
   const readJson = (name) => {
-    const raw = localStorage.getItem(name);
+    const raw = readLocal(name);
     if (!raw) return undefined;
     return JSON.parse(raw);
   };
@@ -32,15 +34,14 @@ export function readScopedJson(storageName, legacyStorageNames = [], fallbackVal
     for (const legacyName of legacyStorageNames) {
       const legacyValue = readJson(legacyName);
       if (legacyValue !== undefined) {
-        localStorage.setItem(storageName, JSON.stringify(legacyValue));
-        localStorage.removeItem(legacyName);
+        if (writeLocal(storageName, JSON.stringify(legacyValue))) removeLocal(legacyName);
         return legacyValue;
       }
     }
     return fallbackValue;
   } catch {
-    localStorage.removeItem(storageName);
-    legacyStorageNames.forEach((name) => localStorage.removeItem(name));
+    removeLocal(storageName);
+    legacyStorageNames.forEach(removeLocal);
     return fallbackValue;
   }
 }

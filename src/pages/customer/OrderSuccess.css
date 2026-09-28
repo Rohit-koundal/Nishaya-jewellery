@@ -1,12 +1,12 @@
 .sc-confirmation {
-  --confirmation-primary: var(--site-primary, #6d1f34);
-  --confirmation-ink: var(--site-text, #30272b);
+  --confirmation-primary: var(--site-primary, var(--app-primary, #6d1f34));
+  --confirmation-ink: var(--site-text, var(--app-text, #30272b));
   --confirmation-muted: var(--site-muted, #766b68);
   --confirmation-border: #e9ddd4;
   --order-border: var(--confirmation-border);
   --order-muted: var(--confirmation-muted);
   color: var(--confirmation-ink);
-  background: var(--site-background, #fffaf2);
+  background: var(--site-background, var(--app-background, #fffaf2));
   font-family: var(--site-body-font, 'Inter', sans-serif);
   font-size: 14px;
   line-height: 1.6;
@@ -49,7 +49,7 @@
 .sc-confirmation__progress li { position: relative; flex: 1; display: flex; flex-direction: column; gap: 8px; align-items: center; font-size: 11px; color: var(--confirmation-muted); }
 .sc-confirmation__progress li:not(:last-child)::after { content: ''; position: absolute; top: 16px; left: calc(50% + 24px); width: calc(100% - 48px); height: 1px; background: #e3d9d0; }
 .sc-confirmation__progress li.is-reached:not([aria-current]):not(:last-child)::after { background: #8fac99; }
-.sc-confirmation__step-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #e3d9d0; background: var(--site-background, #fffaf2); }
+.sc-confirmation__step-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #e3d9d0; background: var(--site-background, var(--app-background, #fffaf2)); }
 .sc-confirmation__progress li.is-reached { color: #286747; font-weight: 600; }
 .sc-confirmation__progress li.is-reached .sc-confirmation__step-icon { border-color: #8fac99; background: #ecf4ed; }
 .sc-confirmation__progress li[aria-current] .sc-confirmation__step-icon { background: #326b4f; color: white; border-color: #326b4f; box-shadow: 0 0 0 4px #326b4f0c; }
@@ -120,7 +120,7 @@
 .sc-confirmation__state p { margin: 14px 0 22px; color: var(--confirmation-muted); }
 .sc-confirmation__state .sc-confirmation__actions { flex-direction: row; flex-wrap: wrap; }
 @media (max-width: 1023px) {
-  .sc-confirmation { --confirmation-primary: var(--rose, #ff5f86); --confirmation-ink: var(--text-body, #282c3f); --confirmation-muted: #64748b; --confirmation-border: #e8edf2; padding: 8px 16px 30px; background: #f6f6f7; font-family: var(--font-auth-app, 'Figtree', sans-serif); }
+  .sc-confirmation { --confirmation-primary: var(--rose, var(--app-primary, #ff5f86)); --confirmation-ink: var(--text-body, var(--app-text, #282c3f)); --confirmation-muted: #64748b; --confirmation-border: #e8edf2; padding: 8px 16px 30px; background: #f6f6f7; font-family: var(--font-auth-app, 'Figtree', sans-serif); }
   .sc-confirmation__button { border-radius: 12px; }
   .sc-confirmation h1, .sc-confirmation h2 { font-family: inherit; }
   .sc-confirmation__hero { padding: 20px 20px 0; gap: 16px; grid-template-columns: minmax(0, 1fr) 170px; }

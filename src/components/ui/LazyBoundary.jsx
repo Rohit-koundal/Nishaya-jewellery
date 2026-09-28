@@ -12,7 +12,7 @@ export default class LazyBoundary extends Component {
   }
   render() {
     if (!this.state.failed) return this.props.children;
-    return <section role="alert" className="m-4 rounded-xl border border-[#eadfd5] bg-white p-5 text-sm text-slate-600">
+    return <section role="alert" className="m-4 rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white p-5 text-sm text-slate-600">
       <h2 className="font-bold text-charcoal">This section could not load</h2>
       <p className="mt-2">Check your connection and reload to try again. Save any open edits first.</p>
       <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-lg bg-wine px-4 py-2 font-bold text-white">Reload page</button>

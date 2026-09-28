@@ -88,7 +88,7 @@ export default function ProductListingPage({
                 : products.length ? products.map((product, index) => (
                 <ProductCard key={product.id || product._id || product.slug} product={product} navigate={navigate} onBeforeOpen={onBeforeProductOpen} imagePriority={index < 4} />
               )) : (
-                <div className="col-span-full rounded-2xl border border-[#ead8cb] bg-white p-8 text-center text-sm font-semibold text-[#6f625c]">
+                <div className="col-span-full rounded-2xl border border-[rgb(var(--app-border-rgb,234_216_203))] bg-white p-8 text-center text-sm font-semibold text-[#6f625c]">
                   <p>No products match these filters.</p>
                   <button type="button" onClick={onClearFilters} className="mt-4 min-h-11 rounded-lg border border-wine px-5 font-bold text-wine">Clear filters</button>
                 </div>

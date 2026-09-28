@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import api from '../services/api';
 import { samiraApi } from '../store/apiSlice';
 import { logout as logoutAction, selectUser, setCredentials, setUser as setUserAction } from '../store/authSlice';
+import { readLocal } from '../utils/safeStorage';
 
 export const AuthContext = createContext(null);
 
@@ -46,11 +47,11 @@ export function AuthProvider({ children, navigate }) {
   }, [dispatch]);
 
   const refreshProfile = useCallback(async () => {
-    const token = localStorage.getItem('samira_token');
+    const token = readLocal('samira_token');
     if (!token) return null;
     const revision = sessionRevision.current;
     const request = ++profileRequest.current;
-    const isCurrent = () => revision === sessionRevision.current && request === profileRequest.current && !!localStorage.getItem('samira_token');
+    const isCurrent = () => revision === sessionRevision.current && request === profileRequest.current && !!readLocal('samira_token');
     try {
       const profile = await api.get('/auth/me');
       if (!isCurrent()) return null;

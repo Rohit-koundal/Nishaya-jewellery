@@ -1,0 +1,74 @@
+/* Appearance is shared by every viewport and portal. Grid, image cropping,
+   navigation and semantic success/warning/error colors are deliberately separate.
+   No rule here applies to the unchanged Default mobile experience. */
+html[data-app-theme="true"],
+html[data-app-theme="true"] body {
+  background: var(--app-background);
+  color: var(--app-text);
+  font-family: var(--app-body-font);
+  font-weight: var(--site-body-weight);
+}
+html[data-app-theme="true"] .site-storefront {
+  background: var(--app-background);
+  color: var(--app-text);
+  font-family: var(--app-body-font);
+}
+html[data-app-theme="true"] .site-storefront :is(h1, h2, h3),
+html[data-app-theme="true"] .admin-shell :is(h1, h2, h3) {
+  font-family: var(--app-heading-font);
+  font-weight: var(--site-heading-weight);
+}
+html[data-app-theme="true"] .bg-white { background-color: var(--app-surface); }
+html[data-app-theme="true"] :is(.text-slate-500, .text-slate-600, .text-gray-500, .text-gray-600) { color: var(--app-muted); }
+html[data-app-theme="true"] :is(.text-slate-800, .text-slate-900, .text-gray-800, .text-gray-900) { color: var(--app-text); }
+html[data-app-theme="true"] :is(.bg-wine, .bg-rose).text-white { color: var(--app-on-primary); }
+
+html[data-app-theme="true"] .mobile-home { background: var(--app-background); }
+html[data-app-theme="true"] [data-mobile-header] {
+  background: var(--site-header-background);
+  color: var(--site-header-text);
+}
+html[data-app-theme="true"] [data-mobile-header] button { color: inherit; }
+html[data-app-theme="true"] [data-mobile-navigation] { background: var(--app-surface); border-color: var(--app-border); }
+html[data-app-theme="true"] [data-mobile-navigation] [aria-current="page"] { color: var(--app-primary); }
+html[data-app-theme="true"] :is(.admin-card, .admin-kpi-strip, .category-summary) { background: var(--app-surface); }
+html[data-app-theme="true"] .site-storefront :is([data-theme-product-card], [data-mobile-product-shell]) {
+  border-radius: var(--site-card-radius); box-shadow: var(--site-card-shadow);
+}
+html[data-app-theme="true"] .site-storefront .sc-product-card__media {
+  border-radius: var(--site-card-radius) var(--site-card-radius) 0 0;
+}
+html[data-app-theme="true"] :is(button.bg-wine, .admin-btn:not(.admin-btn-secondary):not(.admin-btn-danger), .admin-btn-primary, .card-action--primary,
+  .sc-bag__primary, .sc-wishlist__primary, .sc-addresses__primary, .sc-mobile-checkout__primary) {
+  background: var(--site-button-bg); color: var(--site-button-text);
+  border-radius: var(--site-button-radius); font-family: var(--site-button-font);
+}
+html[data-app-theme="true"] .site-storefront .site-theme-button {
+  min-height: var(--site-button-height);
+  padding-inline: var(--site-button-padding);
+  border-radius: var(--site-button-radius);
+  background: var(--site-button-bg);
+  color: var(--site-button-text);
+  font-family: var(--site-button-font);
+  font-weight: var(--site-button-weight);
+}
+html[data-app-theme="true"] .site-storefront[data-button-style="outline"] .site-theme-button {
+  border: 1px solid var(--site-button-bg); background: transparent; color: var(--site-button-bg);
+}
+html[data-app-theme="true"] .site-storefront[data-button-style="soft"] .site-theme-button {
+  background: var(--app-secondary); color: var(--app-primary);
+}
+/* Mobile appearance inherits the selected brand without enabling a different
+   catalogue/section layout. Explicit mobile overrides still take precedence. */
+@media (max-width: 767px) {
+  html[data-app-theme="true"] .site-storefront[data-mobile-custom="true"],
+  html[data-app-theme="true"] .site-storefront[data-mobile-custom="true"] .mobile-home {
+    background: var(--site-mobile-bg);
+  }
+  html[data-app-theme="true"] .site-storefront[data-mobile-custom="true"] [data-mobile-header] {
+    background: var(--site-mobile-header-bg); color: var(--site-mobile-header-text);
+  }
+  html[data-app-theme="true"] .site-storefront[data-mobile-custom="true"] :is([data-theme-product-card], [data-mobile-product-shell], .sc-product-card__media) {
+    border-radius: var(--site-mobile-radius);
+  }
+}

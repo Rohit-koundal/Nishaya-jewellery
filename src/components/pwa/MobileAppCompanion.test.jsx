@@ -3,11 +3,14 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import MobileAppCompanion from './MobileAppCompanion';
 
 const setAppBadge = jest.fn();
+const originalLocation = window.location;
+const reload = jest.fn();
 jest.mock('../../context/CartContext', () => ({ useCart: () => ({ itemCount: 3 }) }));
 jest.mock('../../context/NotificationContext', () => ({ useNotifications: () => ({ unreadCount: 2 }) }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  Object.defineProperty(window, 'location', { configurable: true, value: { ...originalLocation, reload } });
   localStorage.clear();
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
@@ -20,6 +23,41 @@ beforeEach(() => {
     configurable: true,
     value: { addEventListener: jest.fn(), removeEventListener: jest.fn() },
   });
+});
+
+afterEach(() => Object.defineProperty(window, 'location', { configurable: true, value: originalLocation }));
+
+function controllerChanged() {
+  const handler = navigator.serviceWorker.addEventListener.mock.calls.find(([name]) => name === 'controllerchange')[1];
+  handler();
+}
+
+test('first installation and updates from other tabs never reload the current page', () => {
+  render(<MobileAppCompanion />);
+  controllerChanged();
+  expect(reload).not.toHaveBeenCalled();
+  fireEvent(window, new CustomEvent('samira:pwa-update', { detail: { registration: { waiting: { postMessage: jest.fn() } } } }));
+  controllerChanged();
+  expect(reload).not.toHaveBeenCalled();
+});
+
+test('an explicitly accepted update reloads exactly once after activation', () => {
+  render(<MobileAppCompanion />);
+  const postMessage = jest.fn();
+  fireEvent(window, new CustomEvent('samira:pwa-update', { detail: { registration: { waiting: { postMessage } } } }));
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' });
+  expect(reload).not.toHaveBeenCalled();
+  controllerChanged();
+  controllerChanged();
+  expect(reload).toHaveBeenCalledTimes(1);
+});
+
+test('a removed waiting worker still allows a user-requested refresh', () => {
+  render(<MobileAppCompanion />);
+  fireEvent(window, new CustomEvent('samira:pwa-update', { detail: { registration: {} } }));
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  expect(reload).toHaveBeenCalledTimes(1);
 });
 
 test('phone companion reports connectivity, offers installation, applies updates and syncs the app badge', async () => {

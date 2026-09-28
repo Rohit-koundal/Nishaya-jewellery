@@ -14,7 +14,7 @@ const product = { id: 'earrings', slug: 'gold-earrings', name: 'Gold earrings', 
 let stylesheet;
 beforeAll(() => {
   // CRA mocks imported CSS in Jest. Load the real component rules so a future
-  // top/cover override is caught, not just the presence of a class name.
+  // top/contain override is caught, not just the presence of a class name.
   stylesheet = document.createElement('style');
   stylesheet.textContent = [
     fs.readFileSync(path.join(__dirname, '../product/ProductImageCarousel.css'), 'utf8'),
@@ -27,13 +27,13 @@ beforeEach(() => jest.clearAllMocks());
 
 test.each([
   ['portrait', 900, 2400], ['landscape', 2400, 600], ['square', 1600, 1600], ['small', 64, 48],
-])('%s photos retain the original source and use proportional centered fitting', (_shape, width, height) => {
+])('%s photos fill the frame with proportional center-cropping and retain the original source', (_shape, width, height) => {
   render(<ProductCard product={product} navigate={jest.fn()} />);
   const image = screen.getByRole('img', { name: product.name });
   Object.defineProperties(image, { naturalWidth: { value: width }, naturalHeight: { value: height } });
   fireEvent.load(image);
   const imageStyle = getComputedStyle(image);
-  expect(imageStyle.objectFit).toBe('contain');
+  expect(imageStyle.objectFit).toBe('cover');
   expect(imageStyle.objectPosition).toBe('50% 50%');
   expect(imageStyle.position).toBe('absolute');
   expect(imageStyle.width).toBe('100%');
@@ -63,14 +63,14 @@ test('the media frame, not image content, owns catalogue dimensions', () => {
   expect(getComputedStyle(slide).flexShrink).toBe('0');
 });
 
-test('mixed-aspect galleries retain the fitting contract on every visited slide', () => {
+test('mixed-aspect galleries retain centered cover on every visited slide', () => {
   const images = ['portrait', 'landscape', 'tiny'].map(name => ({ url: `https://images.example.test/${name}.png` }));
   const { container } = render(<ProductCard product={{ ...product, images }} navigate={jest.fn()} />);
   expect(container.querySelectorAll('img')).toHaveLength(1);
   fireEvent.click(screen.getByRole('button', { name: 'Next image' }));
   fireEvent.click(screen.getByRole('button', { name: 'Next image' }));
   for (const image of container.querySelectorAll('.sc-product-carousel__image')) {
-    expect(getComputedStyle(image).objectFit).toBe('contain');
+    expect(getComputedStyle(image).objectFit).toBe('cover');
     expect(getComputedStyle(image).objectPosition).toBe('50% 50%');
   }
   expect(container.querySelector('.sc-product-carousel__track')).toHaveStyle({ transform: 'translateX(-200%)' });

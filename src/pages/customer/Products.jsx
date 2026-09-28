@@ -224,13 +224,13 @@ export default function Products({ navigate, route = '/products' }) {
       <div className="sticky top-14 z-30 -mx-3 mb-3 border-b border-slate-100 bg-white/95 px-3 pb-3 pt-2 backdrop-blur lg:hidden">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-[13px] font-bold text-[#1f2a44]">{collectionLabel}</p>
+          <p className="text-[13px] font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">{collectionLabel}</p>
           <p className="mt-0.5 text-[11px] text-slate-500">{loading ? 'Loading styles…' : `${totalProducts} styles available`}</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="flex h-9 items-center gap-1 rounded-full border border-[#ebe7e2] bg-white px-3 text-[11px] font-medium text-slate-600 shadow-sm">
             <span>Sort</span>
-            <select value={filters.sort} onChange={(event) => updateParam('sort', event.target.value)} className="appearance-none bg-transparent pr-1 text-[11px] font-semibold text-[#1f2a44] outline-none">
+            <select value={filters.sort} onChange={(event) => updateParam('sort', event.target.value)} className="appearance-none bg-transparent pr-1 text-[11px] font-semibold text-[rgb(var(--app-text-rgb,31_42_68))] outline-none">
               <option value="newest">Latest</option>
               <option value="bestSeller">Popular</option>
               <option value="priceLowHigh">Low-High</option>
@@ -239,7 +239,7 @@ export default function Products({ navigate, route = '/products' }) {
               <option value="rating">Rating</option>
             </select>
           </label>
-          <button type="button" onClick={() => setOpenFilters(true)} className="flex h-9 items-center gap-1 rounded-full border border-[#ebe7e2] bg-white px-3 text-[11px] font-semibold text-[#1f2a44] shadow-sm">
+          <button type="button" onClick={() => setOpenFilters(true)} className="flex h-9 items-center gap-1 rounded-full border border-[#ebe7e2] bg-white px-3 text-[11px] font-semibold text-[rgb(var(--app-text-rgb,31_42_68))] shadow-sm">
             <Icon name="filter" className="h-3.5 w-3.5" /> Filter{appliedMobileFilters.length ? ` (${appliedMobileFilters.length})` : ''}
           </button>
         </div>
@@ -252,7 +252,7 @@ export default function Products({ navigate, route = '/products' }) {
             dispatch(replaceCatalogFilters(preservedFilters));
             syncCatalogRoute(preservedFilters);
           }}
-          className={`min-w-max rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm ${!filters.category ? 'bg-wine text-white' : 'bg-white text-[#1f2a44]'}`}
+          className={`min-w-max rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm ${!filters.category ? 'bg-wine text-white' : 'bg-white text-[rgb(var(--app-text-rgb,31_42_68))]'}`}
         >
           All
         </button>
@@ -263,7 +263,7 @@ export default function Products({ navigate, route = '/products' }) {
             <button
               key={categoryValue}
               onClick={() => updateParam('category', toggleFilterValue(filters.category, categoryValue))}
-              className={`min-w-max rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm ${active ? 'bg-wine text-white' : 'bg-white text-[#1f2a44]'}`}
+              className={`min-w-max rounded-full px-3 py-1.5 text-[11px] font-semibold shadow-sm ${active ? 'bg-wine text-white' : 'bg-white text-[rgb(var(--app-text-rgb,31_42_68))]'}`}
             >
               {category.name}
             </button>

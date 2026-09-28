@@ -1,7 +1,7 @@
 @media (min-width: 1024px) {
   .sc-tabs {
     overflow: hidden;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 14px;
     background: #fff;
     box-shadow: 0 10px 30px rgba(70, 35, 20, 0.055);
@@ -14,12 +14,12 @@
     gap: 20px;
     padding: 22px 24px 18px;
     border-bottom: 1px solid #efe2d8;
-    background: linear-gradient(100deg, #fffaf6 0%, #fff 68%);
+    background: linear-gradient(100deg, var(--app-background, #fffaf6) 0%, #fff 68%);
   }
 
   .sc-tabs__eyebrow {
     margin: 0 0 5px;
-    color: #970f3e;
+    color: var(--app-primary, #970f3e);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.14em;
@@ -73,7 +73,7 @@
   .sc-tabs__section-title svg {
     width: 16px;
     height: 16px;
-    color: #970f3e;
+    color: var(--app-primary, #970f3e);
     stroke-width: 1.8;
   }
 
@@ -102,7 +102,7 @@
     padding: 18px;
     border: 1px solid #efdfd3;
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--app-background, #fffaf6);
   }
 
   .sc-tabs__highlights ul {
@@ -201,7 +201,7 @@
     border: 0;
     background: transparent;
     padding: 0;
-    color: #970f3e;
+    color: var(--app-primary, #970f3e);
     font-size: 11px;
     font-weight: 800;
     cursor: pointer;
@@ -221,9 +221,9 @@
   }
 
   .sc-tabs__tags span {
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 999px;
-    background: #fffaf6;
+    background: var(--app-background, #fffaf6);
     padding: 7px 11px;
     color: #62554d;
     font-size: 10px;

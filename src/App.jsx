@@ -1,6 +1,6 @@
 import { NotificationProvider } from './context/NotificationContext';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { MantineProvider, createTheme } from '@mantine/core';
+import ApplicationThemeProvider from './components/theme/ApplicationThemeProvider';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -188,19 +188,6 @@ const adminRoutes = {
 };
 
 
-const samiraTheme = createTheme({
-  primaryColor: 'maroon',
-  primaryShade: 8,
-  defaultRadius: 'md',
-  fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
-  headings: {
-    fontFamily: '"Playfair Display", Georgia, serif',
-  },
-  colors: {
-    maroon: ['#f9ecef', '#f2d8de', '#e8bcc8', '#db93a6', '#cc6d87', '#ba4668', '#a92d4f', '#951c3e', '#7b1834', '#5f1128'],
-  },
-});
-
 function useAppRoute() {
   const [route, setRoute] = useState(() => readAppRoute());
 
@@ -245,15 +232,15 @@ export default function App() {
   const [route, navigate] = useAppRoute();
 
   return (
-    <MantineProvider theme={samiraTheme}>
-      <WebsiteCustomizationProvider>
+    <WebsiteCustomizationProvider>
+      <ApplicationThemeProvider>
         {isWebsitePreview() ? <Suspense fallback={<RouteFallback />}><WebsitePreview /></Suspense> : <AuthProvider navigate={navigate}>
           <NotificationProvider navigate={navigate}><StorefrontProvider route={route}>
             <AppShell route={route} navigate={navigate} />
           </StorefrontProvider></NotificationProvider>
         </AuthProvider>}
-      </WebsiteCustomizationProvider>
-    </MantineProvider>
+      </ApplicationThemeProvider>
+    </WebsiteCustomizationProvider>
   );
 }
 
@@ -482,7 +469,7 @@ function RouteFallback() {
 
   return (
     <div className="grid min-h-[50vh] place-items-center px-4">
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-[#eadfd5] bg-white px-8 py-10 text-center shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <div className="flex flex-col items-center gap-3 rounded-3xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white px-8 py-10 text-center shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
         <span className="relative block h-12 w-12" aria-hidden="true">
           <span className="absolute inset-0 rounded-full border-[3px] border-[#f3d3da]" />
           <span

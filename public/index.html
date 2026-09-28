@@ -29,13 +29,30 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>Nishaya Jewellery</title>
+    <style>
+      .store-startup { box-sizing: border-box; min-height: 70vh; max-width: 30rem; margin: 0 auto; padding: 22vh 24px 40px; text-align: center; color: #392a2e; font: 16px/1.6 system-ui, sans-serif; }
+      .store-startup__brand { color: #6d1f34; font-size: 13px; font-weight: 600; letter-spacing: .18em; }
+      .store-startup h1 { margin: 16px 0 8px; font-size: 22px; font-weight: 600; }
+      .store-startup__retry { display: inline-block; margin-top: 16px; border: 0; border-radius: 8px; padding: 10px 20px; background: #6d1f34; color: #fff; font: inherit; text-decoration: none; cursor: pointer; }
+      .store-startup__retry:focus-visible { outline: 3px solid #aa7b32; outline-offset: 3px; }
+      .store-startup__retry[hidden] { display: none; }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <main class="store-startup" id="store-startup" role="status" aria-live="polite">
+        <p class="store-startup__brand">NISHAYA JEWELLERY</p>
+        <h1>Opening the store</h1>
+        <p id="store-startup-message">Please wait a moment.</p>
+        <a class="store-startup__retry" id="store-startup-retry" href="" hidden>Reload page</a>
+      </main>
+    </div>
+    <!-- Recovery must never become a download dependency of the main app. -->
+    <script async src="%PUBLIC_URL%/startup.js"></script>
     <!--
       This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+      The startup screen remains visible until the app mounts.
 
       You can add webfonts, meta tags, or analytics to this file.
       The build step will place the bundled scripts into the <body> tag.

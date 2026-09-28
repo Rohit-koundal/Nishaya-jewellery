@@ -26,14 +26,14 @@
     height: 72px;
     padding: 0;
     border-radius: 6px;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     background: #fff;
     overflow: hidden;
     box-shadow: 0 6px 18px rgba(70, 35, 20, 0.05);
   }
 
   .sc-gallery__thumb--active {
-    border: 2px solid #8a0f36;
+    border: 2px solid var(--app-primary, #8a0f36);
   }
 
   .sc-gallery__thumb-media {
@@ -46,8 +46,8 @@
   .sc-gallery__thumb--more {
     display: grid;
     place-items: center;
-    background: #fff8f2;
-    color: #8a0f36;
+    background: var(--app-background, #fff8f2);
+    color: var(--app-primary, #8a0f36);
   }
 
   .sc-gallery__thumb-more {
@@ -99,7 +99,7 @@
     height: 34px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
     box-shadow: 0 8px 20px rgba(70, 35, 20, 0.15);
   }
 
@@ -118,7 +118,7 @@
     height: 30px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.94);
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
     transform: translateY(-50%);
     box-shadow: 0 8px 20px rgba(70, 35, 20, 0.12);
   }
@@ -155,7 +155,7 @@
 
   .sc-gallery__pill--primary {
     background: #fff;
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
   }
 
   .sc-gallery__pill--secondary {
@@ -178,7 +178,7 @@
     padding: 6px 9px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
     font-size: 10px;
     font-weight: 700;
     box-shadow: 0 8px 18px rgba(70, 35, 20, 0.12);

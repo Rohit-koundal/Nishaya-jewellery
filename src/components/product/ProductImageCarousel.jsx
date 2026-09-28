@@ -169,7 +169,7 @@ export default function ProductImageCarousel({
                   event.stopPropagation();
                   goTo(index - 1);
                 }}
-                className="absolute left-2 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/92 text-[#1f2a44] shadow-sm md:grid"
+                className="absolute left-2 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/92 text-[rgb(var(--app-text-rgb,31_42_68))] shadow-sm md:grid"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -180,7 +180,7 @@ export default function ProductImageCarousel({
                   event.stopPropagation();
                   goTo(index + 1);
                 }}
-                className="absolute right-2 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/92 text-[#1f2a44] shadow-sm md:grid"
+                className="absolute right-2 top-1/2 hidden h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/92 text-[rgb(var(--app-text-rgb,31_42_68))] shadow-sm md:grid"
                 aria-label="Next image"
               >
                 <ChevronRight className="h-4 w-4" />

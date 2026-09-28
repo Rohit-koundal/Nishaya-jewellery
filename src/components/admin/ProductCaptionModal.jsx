@@ -34,7 +34,7 @@ export default function ProductCaptionModal({ open, product, settings, onClose }
           </button>
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-          <textarea aria-label="Product caption" value={caption} onChange={(event) => setCaption(event.target.value)} className="min-h-[340px] flex-1 rounded-[24px] border border-slate-200 bg-[#fcfaf7] p-4 text-sm leading-6 text-charcoal" />
+          <textarea aria-label="Product caption" value={caption} onChange={(event) => setCaption(event.target.value)} className="min-h-[340px] flex-1 rounded-[24px] border border-slate-200 bg-[rgb(var(--app-background-rgb,252_250_247))] p-4 text-sm leading-6 text-charcoal" />
           {message && <p role="status" className="rounded-xl bg-[#fdf4f6] px-3 py-2 text-sm font-semibold text-rose">{message}</p>}
           <div className="flex flex-wrap gap-3">
             <button type="button" onClick={copy} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-wine px-4 text-sm font-black text-white">

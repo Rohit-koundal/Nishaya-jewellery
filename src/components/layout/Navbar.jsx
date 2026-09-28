@@ -97,7 +97,7 @@ export default function Navbar({
       <div className="sc-navbar__shell">
         {announcementVisible && <div className="sc-navbar__top">
           <div className="sc-navbar__announcement">
-            <Truck className="h-4.5 w-4.5 text-[#b88945]" strokeWidth={1.9} aria-hidden="true" />
+            <Truck className="h-4.5 w-4.5 text-[rgb(var(--app-accent-rgb,184_137_69))]" strokeWidth={1.9} aria-hidden="true" />
             {headerConfig.announcementLink ? <button type="button" className="text-[13px] font-medium tracking-[0.01em] underline-offset-2 hover:underline" onClick={() => go(headerConfig.announcementLink)}>{headerConfig.announcementText}</button>
               : <span className="text-[13px] font-medium tracking-[0.01em]">{headerConfig.announcementText}</span>}
           </div>

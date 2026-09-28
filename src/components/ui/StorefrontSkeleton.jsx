@@ -7,9 +7,9 @@ export default function StorefrontSkeleton({ variant = 'home', label = 'Loading 
     return () => window.clearTimeout(timer);
   }, []);
   const block = 'motion-safe:animate-pulse rounded-xl bg-[#eee7e3]';
-  return <section className={`bg-[#fcfaf7] px-3 py-4 ${className}`} role="status" aria-label={label} aria-busy="true" data-storefront-skeleton={variant}>
+  return <section className={`bg-[rgb(var(--app-background-rgb,252_250_247))] px-3 py-4 ${className}`} role="status" aria-label={label} aria-busy="true" data-storefront-skeleton={variant}>
     <p className="sr-only" aria-live="polite">{slow ? 'Taking a little longer. You can still use the menu or browse another page.' : label}</p>
-    {slow && <p className="mb-4 rounded-xl border border-[#eadfd5] bg-white p-3 text-center text-xs text-slate-600">Taking a little longer to load. You can still use the menu.</p>}
+    {slow && <p className="mb-4 rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white p-3 text-center text-xs text-slate-600">Taking a little longer to load. You can still use the menu.</p>}
     <div aria-hidden="true" className="space-y-5">
       {variant === 'home' && <>
         <div className={`${block} h-48 w-full sm:h-64`} />

@@ -104,7 +104,7 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
 
         <div className="flex items-start justify-between border-b border-slate-100 px-4 pb-3 pt-3">
           <div>
-            <h2 id="mobile-filter-title" className="text-[22px] font-bold text-[#1f2a44]">Filters</h2>
+            <h2 id="mobile-filter-title" className="text-[22px] font-bold text-[rgb(var(--app-text-rgb,31_42_68))]">Filters</h2>
             <p className="mt-1 text-[11px] text-slate-500">{selectedCount} selected · {totalResults} current results</p>
           </div>
           <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
                     key={item.key}
                     type="button"
                     onClick={() => setActiveSection(item.key)}
-                    className={`flex w-full items-center gap-2 rounded-xl px-2 py-2.5 text-left ${active ? 'bg-[#fff1f5] text-[#ff4f7d]' : 'text-[#1f2a44]'}`}
+                    className={`flex w-full items-center gap-2 rounded-xl px-2 py-2.5 text-left ${active ? 'bg-[#fff1f5] text-[#ff4f7d]' : 'text-[rgb(var(--app-text-rgb,31_42_68))]'}`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
                     <span className="text-[11px] font-semibold">{item.label}</span>
@@ -158,7 +158,7 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
                       >
                         <div className="flex items-center gap-3">
                           {category.image ? <img src={normalizeImageUrl(category.image)} alt="" className="h-10 w-8 rounded-md bg-[#f5ede7] object-cover" /> : <div className="h-10 w-8 rounded-md bg-[#f5ede7]" />}
-                          <span className="text-[13px] font-medium text-[#1f2a44]">{category.name} <small className="text-slate-400">({count})</small></span>
+                          <span className="text-[13px] font-medium text-[rgb(var(--app-text-rgb,31_42_68))]">{category.name} <small className="text-slate-400">({count})</small></span>
                         </div>
                         <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[#ff4f7d] bg-[#ff4f7d]' : 'border-slate-300 bg-white'}`}>
                           {selected ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}
@@ -260,7 +260,7 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
         </div>
 
         <div className="grid grid-cols-2 gap-3 border-t border-slate-100 bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
-          <button type="button" onClick={resetFilters} className="h-12 rounded-lg border border-slate-300 text-[14px] font-semibold text-[#1f2a44]">
+          <button type="button" onClick={resetFilters} className="h-12 rounded-lg border border-slate-300 text-[14px] font-semibold text-[rgb(var(--app-text-rgb,31_42_68))]">
             Reset
           </button>
           <button type="button" onClick={applyFilters} className="h-12 rounded-lg bg-wine text-[14px] font-semibold text-white">
@@ -275,7 +275,7 @@ export default function MobileFilterSheet({ open, onClose, categories = [], para
 function FilterSection({ title, children }) {
   return (
     <section>
-      {title ? <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1f2a44]">{title}</h3> : null}
+      {title ? <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[rgb(var(--app-text-rgb,31_42_68))]">{title}</h3> : null}
       {children}
     </section>
   );
@@ -284,7 +284,7 @@ function FilterSection({ title, children }) {
 function Accordion({ title, open, onToggle, children }) {
   return (
     <div className="border-b border-slate-100">
-      <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left text-[13px] font-semibold text-[#1f2a44]">
+      <button type="button" onClick={onToggle} className="flex w-full items-center justify-between py-3 text-left text-[13px] font-semibold text-[rgb(var(--app-text-rgb,31_42_68))]">
         <span>{title}</span>
         <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -305,7 +305,7 @@ function CheckboxList({ items, value, onChange }) {
             onClick={() => onChange(item.value)}
             className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1.5 text-left"
           >
-            <span className="text-[13px] text-[#1f2a44]">{item.label}</span>
+            <span className="text-[13px] text-[rgb(var(--app-text-rgb,31_42_68))]">{item.label}</span>
             <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[#ff4f7d] bg-[#ff4f7d]' : 'border-slate-300 bg-white'}`}>
               {selected ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}
             </span>
@@ -331,8 +331,8 @@ function SelectionCardList({ items, value, onChange }) {
             onClick={() => onChange(item.value)}
             className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#f0e7e2] bg-white px-4 py-3 text-left shadow-[0_2px_8px_rgba(15,23,42,0.03)] disabled:opacity-40"
           >
-            <span className="text-[13px] font-medium text-[#1f2a44]">{item.label} <small className="text-slate-400">({item.count || 0})</small></span>
-            <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[#7a1f36] bg-[#7a1f36]' : 'border-slate-300 bg-white'}`}>
+            <span className="text-[13px] font-medium text-[rgb(var(--app-text-rgb,31_42_68))]">{item.label} <small className="text-slate-400">({item.count || 0})</small></span>
+            <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[rgb(var(--app-primary-rgb,122_31_54))] bg-[rgb(var(--app-primary-rgb,122_31_54))]' : 'border-slate-300 bg-white'}`}>
               {selected ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}
             </span>
           </button>
@@ -359,12 +359,12 @@ function ColorOptionList({ items, value, onChange }) {
           >
             <span className="flex items-center gap-3">
               <span
-                className={`h-4 w-4 rounded-full border border-white shadow-sm ring-1 ${selected ? 'ring-[#7a1f36]' : 'ring-slate-300'}`}
+                className={`h-4 w-4 rounded-full border border-white shadow-sm ring-1 ${selected ? 'ring-[rgb(var(--app-primary-rgb,122_31_54))]' : 'ring-slate-300'}`}
                 style={{ backgroundColor: getColorSwatch(item.value) }}
               />
-              <span className="text-[13px] text-[#1f2a44]">{item.label} <small className="text-slate-400">({item.count || 0})</small></span>
+              <span className="text-[13px] text-[rgb(var(--app-text-rgb,31_42_68))]">{item.label} <small className="text-slate-400">({item.count || 0})</small></span>
             </span>
-            <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[#7a1f36] bg-[#7a1f36]' : 'border-slate-300 bg-white'}`}>
+            <span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${selected ? 'border-[rgb(var(--app-primary-rgb,122_31_54))] bg-[rgb(var(--app-primary-rgb,122_31_54))]' : 'border-slate-300 bg-white'}`}>
               {selected ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}
             </span>
           </button>
@@ -381,7 +381,7 @@ function PriceInput({ label, value, onChange }) {
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 rounded-lg border border-slate-200 px-3 text-[13px] text-[#1f2a44] outline-none"
+        className="h-10 rounded-lg border border-slate-200 px-3 text-[13px] text-[rgb(var(--app-text-rgb,31_42_68))] outline-none"
         placeholder="0"
         inputMode="numeric"
       />
@@ -393,7 +393,7 @@ function DynamicFilterOptions({ items = [], value, onChange }) {
   const selected = new Set(splitFilterValues(value).map((item) => item.toLowerCase()));
   return <div className="space-y-2">{items.map((item) => {
     const active = selected.has(String(item.value).toLowerCase());
-    return <button key={item.value} type="button" disabled={!item.count && !active} onClick={() => onChange(item.value)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3 text-left disabled:opacity-40"><span className="text-[13px] text-[#1f2a44]">{item.label} <small className="text-slate-400">({item.count})</small></span><span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${active ? 'border-[#7a1f36] bg-[#7a1f36]' : 'border-slate-300 bg-white'}`}>{active ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}</span></button>;
+    return <button key={item.value} type="button" disabled={!item.count && !active} onClick={() => onChange(item.value)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-3 text-left disabled:opacity-40"><span className="text-[13px] text-[rgb(var(--app-text-rgb,31_42_68))]">{item.label} <small className="text-slate-400">({item.count})</small></span><span className={`grid h-4 w-4 place-items-center rounded-[4px] border ${active ? 'border-[rgb(var(--app-primary-rgb,122_31_54))] bg-[rgb(var(--app-primary-rgb,122_31_54))]' : 'border-slate-300 bg-white'}`}>{active ? <span className="h-1.5 w-1.5 rounded-[2px] bg-white" /> : null}</span></button>;
   })}</div>;
 }
 

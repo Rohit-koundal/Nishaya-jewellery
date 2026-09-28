@@ -1,21 +1,22 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { readLocal, removeLocal, writeLocal } from '../utils/safeStorage';
 
 function readUser() {
   try {
-    const stored = localStorage.getItem('samira_user');
+    const stored = readLocal('samira_user');
     return stored ? JSON.parse(stored) : null;
   } catch {
-    localStorage.removeItem('samira_user');
+    removeLocal('samira_user');
     return null;
   }
 }
 
 const initialState = {
   user: readUser(),
-  token: localStorage.getItem('samira_token') || null,
+  token: readLocal('samira_token') || null,
   refreshToken: null,
 };
-localStorage.removeItem('samira_refresh_token');
+removeLocal('samira_refresh_token');
 
 const authSlice = createSlice({
   name: 'auth',
@@ -25,27 +26,27 @@ const authSlice = createSlice({
       const { user, token } = action.payload || {};
       if (user) {
         state.user = user;
-        localStorage.setItem('samira_user', JSON.stringify(user));
+        writeLocal('samira_user', JSON.stringify(user));
       }
       if (token) {
         state.token = token;
-        localStorage.setItem('samira_token', token);
+        writeLocal('samira_token', token);
       }
       state.refreshToken = null;
-      localStorage.removeItem('samira_refresh_token');
+      removeLocal('samira_refresh_token');
     },
     setUser(state, action) {
       state.user = action.payload;
-      if (action.payload) localStorage.setItem('samira_user', JSON.stringify(action.payload));
-      else localStorage.removeItem('samira_user');
+      if (action.payload) writeLocal('samira_user', JSON.stringify(action.payload));
+      else removeLocal('samira_user');
     },
     logout(state) {
       state.user = null;
       state.token = null;
       state.refreshToken = null;
-      localStorage.removeItem('samira_user');
-      localStorage.removeItem('samira_token');
-      localStorage.removeItem('samira_refresh_token');
+      removeLocal('samira_user');
+      removeLocal('samira_token');
+      removeLocal('samira_refresh_token');
     },
   },
 });

@@ -1,13 +1,13 @@
-/* The mobile shopping flow shares the storefront's rose palette.
-   Scope every refinement to these screens; desktop styles stay independent. */
+/* Preserve the original mobile palette as the fallback; published themes
+   supply shared brand colors without changing the shopping layout. */
 @media (max-width: 1023px) {
   :is(.sc-bag, .sc-bag-dialog, .sc-wishlist, .sc-wish-dialog, .sc-addresses, .sc-address-dialog, .sc-address-form, .sc-mobile-checkout) {
-    --shopping-action: #c73562;
-    --shopping-tint: #fff5f8;
-    --shopping-canvas: #faf8f9;
-    --shopping-border: #eee8ec;
-    --shopping-ink: #282532;
-    --shopping-muted: #77717e;
+    --shopping-action: var(--app-primary, #c73562);
+    --shopping-tint: var(--app-secondary, #fff5f8);
+    --shopping-canvas: var(--app-background, #faf8f9);
+    --shopping-border: var(--app-border, #eee8ec);
+    --shopping-ink: var(--app-text, #282532);
+    --shopping-muted: var(--app-muted, #77717e);
     --shopping-shadow: 0 3px 14px rgb(49 25 40 / 3%);
   }
   section.sc-bag, section.sc-wishlist, section.sc-addresses, section.sc-mobile-checkout { background: var(--shopping-canvas); color: var(--shopping-ink); }
@@ -62,7 +62,7 @@
   .sc-bag .sc-bag-item__picture { width: 104px; height: 150px; border-radius: 9px; }
   .sc-bag .sc-bag-item__price { font-size: 14px; }
   .sc-bag .sc-bag-item__price > span, .sc-wishlist .sc-wishlist__price > span { color: #b56a47; font-weight: 500; }
-  .sc-bag .sc-bag-item__options > button, .sc-bag .sc-bag-item__quantity { background: #faf8f9; border: 1px solid var(--shopping-border); }
+  .sc-bag .sc-bag-item__options > button, .sc-bag .sc-bag-item__quantity { background: var(--app-background, #faf8f9); border: 1px solid var(--shopping-border); }
   .sc-bag .sc-bag-item__return, .sc-bag .sc-bag-item__low { font-size: 10px; }
   .sc-bag .sc-bag__selection { padding-block: 12px; }
   .sc-bag .sc-bag__selection label { font-size: 11px; font-weight: 600; }
@@ -78,7 +78,7 @@
   .sc-bag .sc-bag__recommendations h2 { font-size: 20px; letter-spacing: -.035em; }
 
   .sc-wishlist .sc-wishlist__tools { padding: 12px 14px 10px; border-bottom-color: var(--shopping-border); }
-  .sc-wishlist .sc-wishlist__search { background: #faf8f9; border-color: var(--shopping-border); }
+  .sc-wishlist .sc-wishlist__search { background: var(--app-background, #faf8f9); border-color: var(--shopping-border); }
   .sc-wishlist .sc-wishlist__search input { min-height: 46px; }
   .sc-wishlist .sc-wishlist__refresh { color: var(--shopping-action); border-color: var(--shopping-border); }
   .sc-wishlist .sc-wishlist__sort { min-height: 40px; }

@@ -273,7 +273,7 @@ function DesktopReviews({
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
         <div className="flex flex-wrap gap-2">
-          {[0, 5, 4, 3, 2, 1].map((value) => <button key={value} type="button" onClick={() => { setRatingFilter(value); setShowAll(false); }} className={`rounded-full border px-3 py-2 text-xs font-bold ${ratingFilter === value ? 'border-[#ff3e6c] bg-[#fff0f4] text-[#ff3e6c]' : 'border-slate-200 text-slate-500'}`}>{value ? `${value} ★ (${distribution?.[value] || 0})` : `All (${reviewCount})`}</button>)}
+          {[0, 5, 4, 3, 2, 1].map((value) => <button key={value} type="button" onClick={() => { setRatingFilter(value); setShowAll(false); }} className={`rounded-full border px-3 py-2 text-xs font-bold ${ratingFilter === value ? 'border-[#ff3e6c] bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-[#ff3e6c]' : 'border-slate-200 text-slate-500'}`}>{value ? `${value} ★ (${distribution?.[value] || 0})` : `All (${reviewCount})`}</button>)}
         </div>
         <select value={sort} onChange={(event) => setSort(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600" aria-label="Sort reviews"><option value="newest">Most recent</option><option value="helpful">Most helpful</option><option value="highest">Highest rated</option><option value="lowest">Lowest rated</option></select>
       </div>

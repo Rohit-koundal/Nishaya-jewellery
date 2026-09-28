@@ -2,10 +2,11 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ProductVisual } from './ProductVisual';
 
-test('standalone product visuals fit the original image without cropping', () => {
+test('standalone product visuals preserve the filled frame with a centered crop', () => {
   render(<ProductVisual compact product={{ name: 'Ring', images: [{ url: 'https://images.example.test/ring.png' }] }} />);
   const image = screen.getByRole('img', { name: 'Ring' });
-  expect(image).toHaveClass('absolute', 'inset-0', 'object-contain', 'object-center');
+  expect(image).toHaveClass('absolute', 'inset-0', 'object-cover', 'object-center');
+  expect(image).not.toHaveClass('object-contain', 'object-top');
   expect(image.parentElement).toHaveClass('relative', 'aspect-[4/5]');
 });
 

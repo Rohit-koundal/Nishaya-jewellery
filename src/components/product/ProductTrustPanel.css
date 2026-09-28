@@ -21,14 +21,14 @@
     align-items: center;
     min-width: 0;
     padding: 10px;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 6px;
     background: #fff;
     box-shadow: 0 6px 14px rgba(70, 35, 20, 0.04);
   }
 
   .sc-trust__item--last {
-    border-bottom: 1px solid #ead8cb;
+    border-bottom: 1px solid var(--app-border, #ead8cb);
   }
 
   .sc-trust__icon {
@@ -37,10 +37,10 @@
     justify-content: center;
     width: 26px;
     height: 26px;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 6px;
-    background: #fff8f2;
-    color: #b88945;
+    background: var(--app-background, #fff8f2);
+    color: var(--app-accent, #b88945);
     flex: 0 0 auto;
   }
 

@@ -48,6 +48,18 @@ beforeEach(() => {
 });
 afterEach(() => testStore.dispatch(samiraApi.util.resetApiState()));
 
+test('guest browsing and headers still work when browser storage reads are blocked', async () => {
+  testStore.dispatch(logout());
+  const storageRead = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('Storage blocked'); });
+  try {
+    mockRawQuery.mockResolvedValue({ data: { products: [] } });
+    expect((await request('/products')).data).toEqual({ products: [] });
+    const headers = { set: jest.fn(), delete: jest.fn() };
+    expect(() => mockBaseOptions.prepareHeaders(headers, { getState: testStore.getState, arg: '/products' })).not.toThrow();
+    expect(headers.set).not.toHaveBeenCalledWith('authorization', expect.anything());
+  } finally { storageRead.mockRestore(); }
+});
+
 test.each(['FETCH_ERROR', 'TIMEOUT_ERROR', 503])('a %s during token refresh preserves the restored admin login', async (status) => {
   mockRawQuery.mockImplementation(async ({ url }) => url === '/auth/refresh'
     ? { error: { status, data: { message: 'Temporarily unavailable' } } }

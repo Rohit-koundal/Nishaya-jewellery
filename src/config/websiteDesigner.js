@@ -1,4 +1,4 @@
-import { mergeWebsiteConfig } from './websiteCustomization';
+import { DEFAULT_WEBSITE_CONFIG, mergeWebsiteConfig } from './websiteCustomization';
 
 export const PREVIEW_PATH = '/website-preview';
 export const PREVIEW_PAGES = [
@@ -14,7 +14,7 @@ export const PREVIEW_PAGES = [
 export const isWebsitePreview = () => typeof window !== 'undefined' && window.location.pathname === PREVIEW_PATH;
 
 // Presets only replace appearance. Store identity, content, selected products,
-// contact information, navigation and mobile settings always stay with the store.
+// contact information, navigation and device layouts always stay with the store.
 export function applyAppearancePreset(current, preset) {
   const base = mergeWebsiteConfig(current);
   const look = mergeWebsiteConfig(preset);
@@ -25,6 +25,10 @@ export function applyAppearancePreset(current, preset) {
     header: { ...base.header, background: look.header.background, textColor: look.header.textColor,
       announcementBackground: look.header.announcementBackground, announcementTextColor: look.header.announcementTextColor },
     footer: { ...base.footer, background: look.footer.background, textColor: look.footer.textColor },
+    mobile: { ...base.mobile,
+      headerBackground: look.theme.preset === 'default' ? DEFAULT_WEBSITE_CONFIG.mobile.headerBackground : look.header.background,
+      headerText: look.theme.preset === 'default' ? DEFAULT_WEBSITE_CONFIG.mobile.headerText : look.header.textColor,
+      pageBackground: look.theme.preset === 'default' ? DEFAULT_WEBSITE_CONFIG.mobile.pageBackground : look.colors.background },
   });
 }
 

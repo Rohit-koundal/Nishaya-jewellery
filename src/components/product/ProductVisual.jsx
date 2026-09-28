@@ -19,7 +19,7 @@ export function ProductVisual({ product, compact = false, showMeta = true, fill 
   if (image && !imageFailed) {
     return (
       <div className={`overflow-hidden bg-[#f6efe8] ${frameClass}`}>
-        <img loading="lazy" decoding="async" src={normalizeImageUrl(image)} alt={product.name} onError={() => setImageFailed(true)} className="absolute inset-0 block h-full w-full object-contain object-center" />
+        <img loading="lazy" decoding="async" src={normalizeImageUrl(image)} alt={product.name} onError={() => setImageFailed(true)} className="absolute inset-0 block h-full w-full object-cover object-center" />
       </div>
     );
   }

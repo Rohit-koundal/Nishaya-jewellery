@@ -34,10 +34,10 @@
   .sc-related__nav button {
     width: 28px;
     height: 28px;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 999px;
     background: #fff;
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
   }
 
   .sc-related__rail {
@@ -55,7 +55,7 @@
 
   .sc-related__card {
     flex: 0 0 178px;
-    border: 1px solid #ead8cb;
+    border: 1px solid var(--app-border, #ead8cb);
     border-radius: 8px;
     background: #fff;
     overflow: hidden;
@@ -93,7 +93,7 @@
   }
 
   .sc-related__fallback {
-    background: linear-gradient(135deg, #f8eee7 0%, #ead8cb 100%);
+    background: linear-gradient(135deg, #f8eee7 0%, var(--app-border, #ead8cb) 100%);
   }
 
   .sc-related__badge {
@@ -102,7 +102,7 @@
     top: 8px;
     padding: 3px 7px;
     border-radius: 4px;
-    background: #8a0f36;
+    background: var(--app-primary, #8a0f36);
     color: #fff;
     font-size: 8px;
     font-weight: 800;
@@ -119,7 +119,7 @@
     height: 24px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
-    color: #8a0f36;
+    color: var(--app-primary, #8a0f36);
     border: 0;
     z-index: 2;
   }
@@ -175,8 +175,8 @@
   }
 
   .sc-related__cart--active {
-    background: #8a0f36;
+    background: var(--app-primary, #8a0f36);
     color: #fff;
-    border-color: #8a0f36;
+    border-color: var(--app-primary, #8a0f36);
   }
 }

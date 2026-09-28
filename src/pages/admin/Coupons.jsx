@@ -288,7 +288,7 @@ export default function Coupons() {
 }
 
 function Metric({ icon: Icon, label, value, tone }) {
-  const tones = { wine: 'bg-[#fff0f4] text-wine', green: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', blue: 'bg-sky-50 text-sky-700' };
+  const tones = { wine: 'bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-wine', green: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', blue: 'bg-sky-50 text-sky-700' };
   return <div className="admin-card flex items-center gap-3 p-4"><span className={`grid h-11 w-11 place-items-center rounded-xl ${tones[tone]}`}><Icon className="h-5 w-5" /></span><span><small className="block text-xs font-bold text-slate-500">{label}</small><strong className="mt-1 block text-xl font-black text-charcoal">{formatNumber(value)}</strong></span></div>;
 }
 
@@ -399,7 +399,7 @@ function CouponInsights({ details, loading, products, customers, base, onRange, 
     }
     await copyText(campaignUrl, 'Campaign link copied.');
   };
-  return <aside className="fixed inset-0 z-[80] flex justify-end bg-black/35" role="dialog" aria-modal="true" aria-label={`${coupon.code} performance`}><div className="h-full w-full overflow-y-auto bg-[#fffaf6] shadow-2xl sm:max-w-2xl"><div className="sticky top-0 z-10 flex items-start justify-between border-b border-[#eadfd5] bg-white px-5 py-4"><div><span className="text-[10px] font-black uppercase tracking-widest text-wine">Coupon performance</span><h2 className="mt-1 text-xl font-black text-charcoal">{coupon.code}</h2><p className="text-xs text-slate-500">{coupon.title || benefitLabel(coupon)}</p></div><button type="button" onClick={onClose} aria-label="Close coupon details" className="grid h-10 w-10 place-items-center rounded-full border border-slate-200"><X className="h-5 w-5" /></button></div>
+  return <aside className="fixed inset-0 z-[80] flex justify-end bg-black/35" role="dialog" aria-modal="true" aria-label={`${coupon.code} performance`}><div className="h-full w-full overflow-y-auto bg-[rgb(var(--app-background-rgb,255_250_246))] shadow-2xl sm:max-w-2xl"><div className="sticky top-0 z-10 flex items-start justify-between border-b border-[rgb(var(--app-border-rgb,234_223_213))] bg-white px-5 py-4"><div><span className="text-[10px] font-black uppercase tracking-widest text-wine">Coupon performance</span><h2 className="mt-1 text-xl font-black text-charcoal">{coupon.code}</h2><p className="text-xs text-slate-500">{coupon.title || benefitLabel(coupon)}</p></div><button type="button" onClick={onClose} aria-label="Close coupon details" className="grid h-10 w-10 place-items-center rounded-full border border-slate-200"><X className="h-5 w-5" /></button></div>
     <div className="space-y-5 p-5">
       <div className="flex flex-wrap gap-2"><select value={details.days || 30} onChange={(event) => onRange(Number(event.target.value))} disabled={loading} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last year</option></select><button type="button" onClick={onExport} className="admin-btn-ghost"><Download className="h-4 w-4" /> Export CSV</button><button type="button" onClick={() => copyText(coupon.code || '', 'Coupon code copied.')} className="admin-btn-ghost"><Copy className="h-4 w-4" /> Copy code</button><button type="button" onClick={share} className="admin-btn-ghost"><Share2 className="h-4 w-4" /> Share campaign</button></div>
       {notice ? <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">{notice}</p> : null}
@@ -415,7 +415,7 @@ function CouponInsights({ details, loading, products, customers, base, onRange, 
 }
 
 function Insight({ label, value }) {
-  return <div className="rounded-xl border border-[#eadfd5] bg-white p-3"><small className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</small><strong className="mt-1 block text-base font-black text-charcoal">{value ?? 0}</strong></div>;
+  return <div className="rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white p-3"><small className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</small><strong className="mt-1 block text-base font-black text-charcoal">{value ?? 0}</strong></div>;
 }
 
 function MiniField({ label, children }) {

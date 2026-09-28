@@ -13,9 +13,9 @@ export default function SelectedSizeSummary({ product, size, onOpenSizeGuide }) 
   const fitNote = String(product?.sizeFitNotes || '').trim();
 
   return (
-    <section className="mt-4 rounded-xl border border-[#eadfd5] bg-[#fffdfb] px-4 py-3 shadow-[0_5px_16px_rgba(68,40,25,0.05)]" aria-label={`Selected size ${size}`} aria-live="polite">
+    <section className="mt-4 rounded-xl border border-[rgb(var(--app-border-rgb,234_223_213))] bg-[#fffdfb] px-4 py-3 shadow-[0_5px_16px_rgba(68,40,25,0.05)]" aria-label={`Selected size ${size}`} aria-live="polite">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[11px] text-slate-600 md:text-xs">
-        <span className="font-black uppercase tracking-[.08em] text-[#7a1f36]">Selected size</span>
+        <span className="font-black uppercase tracking-[.08em] text-[rgb(var(--app-primary-rgb,122_31_54))]">Selected size</span>
         <strong className="text-sm text-charcoal">{size}</strong>
       </div>
       {visible.length ? (

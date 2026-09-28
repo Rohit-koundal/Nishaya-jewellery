@@ -1,6 +1,6 @@
-/* Resolve every slide against the frame, not against the source image's height.
-   Contain automatically scales portrait, landscape, square and small images
-   proportionally. Any unused space is shared equally around the whole photo. */
+/* The frame owns the dimensions. Keep the filled/zoomed product-card look:
+   scale proportionally to cover the box and crop around the image's center,
+   rather than shrinking the whole photo or anchoring its crop at the top. */
 .sc-product-carousel__track {
   position: absolute;
   inset: 0;
@@ -25,7 +25,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: 50% 50%;
 }
 

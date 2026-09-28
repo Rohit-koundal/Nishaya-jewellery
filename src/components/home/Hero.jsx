@@ -113,7 +113,7 @@ export default function Hero({ navigate, banner, banners = [] }) {
 
 function HeroStat({ title, subtitle }) {
   return (
-    <div className="rounded-[20px] border border-[#eadfd5] bg-white/85 px-4 py-3 shadow-[0_8px_22px_rgba(23,22,26,0.04)] backdrop-blur-sm">
+    <div className="rounded-[20px] border border-[rgb(var(--app-border-rgb,234_223_213))] bg-white/85 px-4 py-3 shadow-[0_8px_22px_rgba(23,22,26,0.04)] backdrop-blur-sm">
       <p className="text-[12px] font-bold text-charcoal">{title}</p>
       <p className="mt-1 text-[11px] text-slate-500">{subtitle}</p>
     </div>

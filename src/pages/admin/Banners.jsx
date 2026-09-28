@@ -147,7 +147,7 @@ function BannerCard({ banner, base, busy, onEdit, onAction, onMove }) {
     </article>
   );
 }
-function Metric({ icon: Icon, label, value }) { return <div className="admin-card flex items-center gap-3 p-4"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0f4] text-wine"><Icon className="h-5 w-5" /></span><span><small className="block text-xs font-bold text-slate-500">{label}</small><strong className="block text-lg font-black text-charcoal">{value}</strong></span></div>; }
+function Metric({ icon: Icon, label, value }) { return <div className="admin-card flex items-center gap-3 p-4"><span className="grid h-10 w-10 place-items-center rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_244))] text-wine"><Icon className="h-5 w-5" /></span><span><small className="block text-xs font-bold text-slate-500">{label}</small><strong className="block text-lg font-black text-charcoal">{value}</strong></span></div>; }
 function SmallMetric({ label, value }) { return <span><small className="block text-[10px] font-bold uppercase text-slate-400">{label}</small><strong className="mt-1 block text-xs text-charcoal">{value || 0}</strong></span>; }
 function asList(value) { const items = Array.isArray(value) ? value : value?.items; if (!Array.isArray(items)) throw new Error('The server returned invalid campaign data.'); return items; }
 function formatNumber(value) { return Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
