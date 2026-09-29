@@ -2,11 +2,9 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../../services/api';
 import { normalizeImageUrl } from '../../services/normalize';
-import { compressImageFile, isSupportedImageFile } from '../../services/imageCompression';
+import { compressImageFile, isSupportedImageFile, MAX_IMAGE_SOURCE_MB } from '../../services/imageCompression';
 import { inspectProductImage } from '../../utils/imageQuality';
 import ImageBackgroundEditor from './ImageBackgroundEditor';
-
-const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export default function ImageUploader({
   value = [],
@@ -16,7 +14,7 @@ export default function ImageUploader({
   uploadContext = 'products',
   uploadPath = '/admin/uploads',
   compressAboveMb = 2,
-  maxUploadMb = 20,
+  maxUploadMb = MAX_IMAGE_SOURCE_MB,
   targetSizeMb = 0.7,
   label = 'Choose Images',
   helpText = 'Drag and drop or click to upload.',
@@ -58,7 +56,7 @@ export default function ImageUploader({
       const uploadStats = [];
       const inspections = [];
       for (const file of incoming) {
-        if (!isSupportedImageFile(file) || !allowedTypes.includes(file.type)) {
+        if (!isSupportedImageFile(file)) {
           throw new Error('Only JPG, JPEG, PNG, and WEBP images are allowed.');
         }
         if (file.size > maxUploadMb * 1024 * 1024) {

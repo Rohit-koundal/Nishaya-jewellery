@@ -15,6 +15,8 @@ test('Smart Fill suggestions do not refetch catalog subscriptions or block the m
 });
 
 const mockRawQuery = jest.fn();
+const mockImageCompressor = jest.fn();
+jest.mock('browser-image-compression', () => ({ __esModule: true, default: (...args) => mockImageCompressor(...args) }));
 let mockBaseOptions;
 // CRA's Jest resolver predates conditional package exports; use the package's
 // CommonJS build while exercising the actual Redux Query implementation.
@@ -47,6 +49,29 @@ beforeEach(() => {
   testStore.dispatch(setCredentials(original));
 });
 afterEach(() => testStore.dispatch(samiraApi.util.resetApiState()));
+
+test('all upload mutations compress photos before FormData, including mixed evidence and bulk groups', async () => {
+  mockRawQuery.mockResolvedValue({ data: { files: [] } });
+  mockImageCompressor.mockResolvedValue(new Blob(['optimized'], { type: 'image/webp' }));
+  const original = new File([new Uint8Array(3 * 1024 * 1024)], 'E100_front.jpg', { type: 'image/jpeg' });
+  const video = new File(['video'], 'proof.mp4', { type: 'video/mp4' });
+  await testStore.dispatch(samiraApi.endpoints.upload.initiate({ path: '/returns/evidence/uploads', fieldName: 'files', files: [original, video] })).unwrap();
+  const mixed = mockRawQuery.mock.calls[0][0].body.getAll('files');
+  expect(mixed[0].type).toBe('image/webp'); expect(mixed[0].size).toBeLessThan(original.size);
+  expect(mixed[1].name).toBe('proof.mp4'); expect(mixed[1].size).toBe(video.size);
+  const groups = [{ fileIndexes: [0], reference: 'E100' }];
+  await testStore.dispatch(samiraApi.endpoints.bulkUploadProductDrafts.initiate({ files: [original], groups })).unwrap();
+  const bulk = mockRawQuery.mock.calls.at(-1)[0].body;
+  expect(bulk.get('images').type).toBe('image/webp'); expect(JSON.parse(bulk.get('groups'))).toEqual(groups);
+});
+
+test('compression failure never sends a network upload or falls back to the large original', async () => {
+  mockImageCompressor.mockRejectedValue(new Error('Compression failed'));
+  const original = new File(['jpg'], 'photo.jpg', { type: 'image/jpeg' });
+  const response = await testStore.dispatch(samiraApi.endpoints.bulkUploadProductDrafts.initiate({ files: [original] }));
+  expect(response.error.status).toBe(400); expect(response.error.data.message).toBe('Compression failed');
+  expect(mockRawQuery).not.toHaveBeenCalled();
+});
 
 test('guest browsing and headers still work when browser storage reads are blocked', async () => {
   testStore.dispatch(logout());

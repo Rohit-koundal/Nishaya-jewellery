@@ -1,6 +1,5 @@
 import { samiraApi } from '../store/apiSlice';
 import { store } from '../store/store';
-import { compressImageFile, isSupportedImageFile } from './imageCompression';
 import { startMobileLoader, stopMobileLoader } from '../utils/mobileLoader';
 import { getApiBaseUrl } from '../store/apiBaseUrl';
 
@@ -74,29 +73,6 @@ async function request(path, options = {}) {
   }
 }
 
-async function prepareUploadFiles(files, fieldName) {
-  const incoming = Array.from(files || []);
-  if (fieldName !== 'images') return incoming;
-
-  const prepared = [];
-  for (const file of incoming) {
-    if (!file) continue;
-    if (file.__compressionMeta) {
-      prepared.push(file);
-      continue;
-    }
-    if (!isSupportedImageFile(file)) {
-      throw new Error('Only JPG, JPEG, PNG, and WEBP images are allowed.');
-    }
-    prepared.push(await compressImageFile(file, {
-      maxOriginalSizeMb: 2,
-      targetMaxSizeMb: 0.7,
-      maxWidthOrHeight: 1600,
-    }));
-  }
-  return prepared;
-}
-
 async function download(path, body) {
   startMobileLoader();
   try {
@@ -129,8 +105,7 @@ const api = {
   upload: async (path, files, { fieldName = 'images', onRequest, silent = false } = {}) => {
     if (!silent) startMobileLoader();
     try {
-      const preparedFiles = await prepareUploadFiles(files, fieldName);
-      const request = store.dispatch(samiraApi.endpoints.upload.initiate({ path, files: preparedFiles, fieldName, silent }));
+      const request = store.dispatch(samiraApi.endpoints.upload.initiate({ path, files, fieldName, silent }));
       onRequest?.({ cancel: () => request.abort() });
       return await request.unwrap();
     } catch (error) {

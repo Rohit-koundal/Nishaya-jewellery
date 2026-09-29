@@ -1,6 +1,6 @@
 import { createApi, defaultSerializeQueryArgs, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getApiBaseUrl } from './apiBaseUrl';
-import { compressImageFile, isSupportedImageFile } from '../services/imageCompression';
+import { prepareImageUploads } from '../services/imageCompression';
 import { logout, setCredentials } from './authSlice';
 import { startMobileLoader, stopMobileLoader } from '../utils/mobileLoader';
 import { getOrCreateSessionId } from '../utils/attribution';
@@ -177,10 +177,14 @@ export const samiraApi = createApi({
       invalidatesTags: (_result, _error, arg) => tagsForPath(arg.path, true),
     }),
     upload: builder.mutation({
-      query: ({ path, files, fieldName = 'images', silent = false }) => {
-        const formData = new FormData();
-        Array.from(files || []).forEach((file) => formData.append(fieldName, file));
-        return { url: path, method: 'POST', body: formData, silent };
+      async queryFn({ path, files, fieldName = 'images', silent = false }, api, extraOptions, baseQuery) {
+        try {
+          const prepared = await prepareImageUploads(files, fieldName);
+          if (api.signal.aborted) return { error: { status: 400, data: { message: 'Upload cancelled.' } } };
+          const formData = new FormData();
+          prepared.forEach(file => formData.append(fieldName, file));
+          return await baseQuery({ url: path, method: 'POST', body: formData, silent }, api, extraOptions);
+        } catch (error) { return { error: { status: 400, data: { message: error.message || 'Image compression failed. No original images were uploaded.' } } }; }
       },
       invalidatesTags: (_result, _error, arg) => arg.path.endsWith('/background') ? [] : ['AdminProducts', 'Products'],
     }),
@@ -276,22 +280,10 @@ export const samiraApi = createApi({
     }),
     bulkUploadProductDrafts: builder.mutation({
       async queryFn({ files, groupMode = 'separate', groups, apiPrefix = '/admin' }, api, extraOptions, baseQuery) {
-        const preparedFiles = [];
-        for (const file of Array.from(files || [])) {
-          if (!file) continue;
-          if (file.__compressionMeta) {
-            preparedFiles.push(file);
-            continue;
-          }
-          if (!isSupportedImageFile(file)) {
-            return { error: { status: 400, data: { message: 'Only JPG, JPEG, PNG, and WEBP images are allowed.' } } };
-          }
-          preparedFiles.push(await compressImageFile(file, {
-            maxOriginalSizeMb: 2,
-            targetMaxSizeMb: 0.7,
-            maxWidthOrHeight: 1600,
-          }));
-        }
+        let preparedFiles;
+        try { preparedFiles = await prepareImageUploads(files); }
+        catch (error) { return { error: { status: 400, data: { message: error.message || 'Image compression failed. No originals were uploaded.' } } }; }
+        if (api.signal.aborted) return { error: { status: 400, data: { message: 'Upload cancelled.' } } };
         const formData = new FormData();
         preparedFiles.forEach((file) => formData.append('images', file));
         formData.append('groupMode', groupMode === 'single' ? 'single' : 'separate');

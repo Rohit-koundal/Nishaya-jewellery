@@ -4,11 +4,13 @@ const DEFAULT_MAX_WIDTH_OR_HEIGHT = 1600;
 const DEFAULT_TARGET_MIN_MB = 0.3;
 const DEFAULT_TARGET_MAX_MB = 0.7;
 const DEFAULT_TARGET_QUALITY = 0.84;
+export const MAX_IMAGE_SOURCE_MB = 20;
 
 export function isSupportedImageFile(file) {
   if (!file) return false;
   const type = String(file.type || '').toLowerCase();
   if (supportedTypes.has(type)) return true;
+  if (type && type !== 'application/octet-stream') return false;
   const name = String(file.name || '').toLowerCase();
   return supportedExtensions.some((extension) => name.endsWith(extension));
 }
@@ -18,15 +20,18 @@ export async function compressImageFile(file, options = {}) {
     throw new Error('Only JPG, JPEG, PNG, and WEBP images are allowed.');
   }
 
-  const maxOriginalSizeMb = Number(options.maxOriginalSizeMb || 2);
-  const softLimitBytes = maxOriginalSizeMb * 1024 * 1024;
   const originalSize = Number(file.size || 0);
-  const targetMinMb = Number(options.targetMinSizeMb || DEFAULT_TARGET_MIN_MB);
-  const targetMaxMb = Number(options.targetMaxSizeMb || DEFAULT_TARGET_MAX_MB);
+  if (!originalSize || originalSize > MAX_IMAGE_SOURCE_MB * 1024 * 1024) {
+    throw new Error(`Choose a non-empty photo up to ${MAX_IMAGE_SOURCE_MB}MB before compression.`);
+  }
+  const targetMaxMb = Math.min(DEFAULT_TARGET_MAX_MB, Number(options.targetMaxSizeMb || DEFAULT_TARGET_MAX_MB));
+  const targetMinMb = Math.min(targetMaxMb, Number(options.targetMinSizeMb || DEFAULT_TARGET_MIN_MB));
   const targetMaxSizeMb = pickTargetSizeMb(file, targetMinMb, targetMaxMb);
   const maxWidthOrHeight = Number(options.maxWidthOrHeight || DEFAULT_MAX_WIDTH_OR_HEIGHT);
 
-  if (file.size <= softLimitBytes && isPreferredUploadType(file)) {
+  // The old 2MB source threshold incorrectly allowed large WebP originals to
+  // bypass compression. Only an already-small WebP can skip another encode.
+  if (file.size <= targetMaxMb * 1024 * 1024 && isPreferredUploadType(file)) {
     return attachCompressionMeta(file, {
       originalSize,
       compressedSize: originalSize,
@@ -40,7 +45,9 @@ export async function compressImageFile(file, options = {}) {
   try {
     // Validation and already-small WebP uploads do not need the compressor.
     const { default: imageCompression } = await import('browser-image-compression');
-    const compressed = await imageCompression(file, {
+    const extension = String(file.name || '').split('.').pop().toLowerCase();
+    const source = supportedTypes.has(file.type) && file.type !== 'image/jpg' ? file : new File([file], file.name, { type: extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg', lastModified: file.lastModified });
+    const compressed = await imageCompression(source, {
       maxSizeMB: targetMaxSizeMb,
       maxWidthOrHeight,
       alwaysKeepResolution: false,
@@ -51,7 +58,11 @@ export async function compressImageFile(file, options = {}) {
       onProgress: typeof options.onProgress === 'function' ? options.onProgress : undefined,
     });
 
-    const outputName = String(file.name || 'image').replace(/\.[^.]+$/, '.webp');
+    if (!compressed.size || compressed.size > targetMaxSizeMb * 1024 * 1024 || compressed.type !== 'image/webp') {
+      throw new Error('This photo could not be optimized within the upload limit. Try exporting it as JPG or WEBP. The original was not uploaded.');
+    }
+
+    const outputName = `${String(file.name || 'image').replace(/\.[^.]+$/, '')}.webp`;
     const compressedFile = new File([compressed], outputName, {
       type: 'image/webp',
       lastModified: file.lastModified || Date.now(),
@@ -67,6 +78,18 @@ export async function compressImageFile(file, options = {}) {
   } catch (error) {
     throw new Error(error.message || 'Image compression failed. Please try again.');
   }
+}
+
+// One entry point for ordinary uploads, bulk drafts and mixed evidence uploads.
+// Videos are left alone; images are never skipped because their field is "files".
+export async function prepareImageUploads(files, fieldName = 'images') {
+  const prepared = [];
+  for (const file of Array.from(files || [])) {
+    if (!file) continue;
+    if (fieldName === 'images' || fieldName === 'image' || isSupportedImageFile(file) || String(file.type || '').startsWith('image/')) prepared.push(await compressImageFile(file));
+    else prepared.push(file);
+  }
+  return prepared;
 }
 
 function isPreferredUploadType(file) {

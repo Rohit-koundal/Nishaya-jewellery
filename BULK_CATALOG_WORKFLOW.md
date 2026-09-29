@@ -2,7 +2,7 @@
 
 ## Owner workflow
 
-1. Open **Admin → Product Drafts → Create from photos**. Choose up to 30 JPG/PNG/WebP images (2MB each), or a supplier folder.
+1. Open **Admin → Product Drafts → Create from photos**. Choose up to 30 JPG/PNG/WebP originals (20MB each), or a supplier folder. Images are compressed before upload; see `IMAGE_UPLOAD_POLICY.md` for the shared cloud-storage budget.
 2. Check the proposed groups. Explicit references such as `E100_front.jpg` / `E100_side.jpg` and product subfolders suggest groups. Camera counters and visual similarity do not. Move photos, merge groups, split an image into a separate product, and select a cover as needed. Each group supports up to 12 photos. Clicking **Confirm groups & create** approves the grouping.
 3. **Run Smart Fill automatically after upload** is enabled by default and explicitly uses the existing Gemini quota. It analyses up to three views per product, with the cover first. No new AI or image-storage provider is introduced.
 4. In the batch workspace, use shared verified supplier notes, common category, prices, stock and specifications as appropriate. Defaults only fill empty fields, and preserve a stock value of zero. New photo drafts leave stock unknown. Product-specific notes and supplier references remain separately editable. Reusable defaults are opt-in and saved on the current browser for the store; load/review/apply them explicitly.
@@ -20,7 +20,7 @@
 - Each result/status is saved to MongoDB, not only browser memory. Closing the page stops scheduling new requests; an in-flight server request can finish. Refresh, select the affected drafts and reopen **Smart fill / review selected products** to continue. A server process interrupted mid-request has a 90-second lease timeout before safe retry. This is a resumable foreground workflow, not an unattended background worker.
 - Unsaved inline corrections have browser recovery. Stale corrections are shown separately rather than replacing a newer server revision. Browser-private mode/storage limits can disable this extra recovery; completed server saves remain intact.
 - Existing category IDs are used; Smart Fill creates no categories. Existing permissions/licence checks, SKU/variant/stock validation, and the `sourceDraftId` duplicate-publication guard remain in use.
-- Uploaded images are reused. The existing compression settings and stored-image quality are unchanged. Unique staging filenames prevent identically named supplier photos overwriting one another.
+- Uploaded images are reused. All new cloud images follow the shared compression/size policy in `IMAGE_UPLOAD_POLICY.md`; existing stored images are not rewritten. Unique staging filenames prevent identically named supplier photos overwriting one another.
 
 ## Deployment / verification
 
