@@ -37,6 +37,7 @@ import { shouldExitEmptyCheckout } from '../../utils/checkoutGuard';
 import { bagKey, checkoutCart } from '../../utils/bag';
 import { checkoutPayloadSignature, clearCheckoutAttempt, getCheckoutAttempt } from '../../utils/checkoutAttempt';
 import CouponSelector from '../../components/coupon/CouponSelector';
+import WhatsappOrderConsent from '../../components/order/WhatsappOrderConsent';
 import './Checkout.css';
 import './CheckoutMobile.css';
 import '../../styles/MobileShoppingTheme.css';
@@ -125,6 +126,9 @@ export default function Checkout({ navigate }) {
   const [couponFeedback, setCouponFeedback] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentOptions, setPaymentOptions] = useState([]);
+  const [whatsappAvailable, setWhatsappAvailable] = useState(false);
+  const [whatsappOrderUpdates, setWhatsappOrderUpdates] = useState(false);
+  useEffect(() => { setWhatsappOrderUpdates(false); }, [user?._id, user?.id, user?.phone]);
   const [paymentLoading, setPaymentLoading] = useState(true);
   const [paymentError, setPaymentError] = useState('');
   const [paymentAttempt, setPaymentAttempt] = useState(0);
@@ -210,6 +214,7 @@ export default function Checkout({ navigate }) {
         if (!alive) return;
         const methods = Array.isArray(data?.methods) ? data.methods : [];
         setPaymentOptions(methods);
+        setWhatsappAvailable(data?.notifications?.whatsappAvailable === true);
         if (!methods.some(option => option.enabled)) setPaymentError('No payment methods are currently available. Please retry or contact the store.');
         setPaymentMethod((current) => {
           if (current && methods.some((option) => option.key === current && option.enabled)) return current;
@@ -426,6 +431,7 @@ export default function Checkout({ navigate }) {
       paymentMethod,
       coupon: cart.coupon ? { code: cart.coupon.code } : undefined,
       attribution: readAttribution(),
+      whatsappOrderUpdates: whatsappAvailable && whatsappOrderUpdates,
     };
     payload.checkoutAttemptId = getCheckoutAttempt(user, checkoutPayloadSignature(payload));
     return payload;
@@ -724,6 +730,7 @@ export default function Checkout({ navigate }) {
           )
         ) : (
           <MobilePaymentStep
+            whatsappConsent={<WhatsappOrderConsent available={whatsappAvailable} checked={whatsappOrderUpdates} onChange={setWhatsappOrderUpdates} disabled={placing} phone={user?.phone} storeName={brand.websiteName} />}
             selectedAddress={selectedAddress}
             cart={cart}
             summary={summary}
@@ -754,6 +761,7 @@ export default function Checkout({ navigate }) {
 
   return (
     <DesktopCheckout
+      whatsappConsent={<WhatsappOrderConsent available={whatsappAvailable} checked={whatsappOrderUpdates} onChange={setWhatsappOrderUpdates} disabled={placing} phone={user?.phone} storeName={brand.websiteName} />}
       navigate={navigate}
       user={user}
       cart={cart}
@@ -815,6 +823,7 @@ function CodVerificationStep({ verification, otp, setOtp, message, busy, onVerif
 }
 
 function DesktopCheckout({
+  whatsappConsent,
   navigate,
   user,
   cart,
@@ -1004,6 +1013,7 @@ function DesktopCheckout({
 
           <aside className="sc-checkout__side">
             <ShippingAvailability shipping={shipping} />
+            {whatsappConsent}
             <DesktopPriceSummary summary={summary} cta={placeOrderLabel} placing={placing} quoteReady={quoteReady} onAction={placeOrder} />
             <DesktopAssurance />
           </aside>
@@ -1220,7 +1230,7 @@ function MobileAddressSelector({ addresses, selectedAddressId, setSelectedAddres
   </>;
 }
 
-function MobilePaymentStep({ selectedAddress, cart, summary, paymentOptions, paymentStatus, coupons, bestCouponCode, applyCoupon, removeCoupon, couponBusyCode, couponFeedback, paymentMethod, setPaymentMethod, placeOrder, placing, placeOrderLabel, error, quoteError, quoteReady, shipping, retryQuote, onBack }) {
+function MobilePaymentStep({ whatsappConsent, selectedAddress, cart, summary, paymentOptions, paymentStatus, coupons, bestCouponCode, applyCoupon, removeCoupon, couponBusyCode, couponFeedback, paymentMethod, setPaymentMethod, placeOrder, placing, placeOrderLabel, error, quoteError, quoteReady, shipping, retryQuote, onBack }) {
   return <>
     <MobileStepHeader title="Payment" stepLabel="Step 3/3" onBack={onBack} />
     <MobileCheckoutSteps step={3} onAddress={onBack} />
@@ -1253,6 +1263,7 @@ function MobilePaymentStep({ selectedAddress, cart, summary, paymentOptions, pay
           }) : <p className="sc-mobile-checkout__muted" role="status">Loading payment options...</p>)}
         </div>
         {paymentMethod && <OnlinePaymentNote paymentMethod={paymentMethod} />}
+        {whatsappConsent}
       </section>
       <section className="sc-mobile-checkout__card sc-mobile-checkout__prices" aria-label="Price details" aria-busy={!quoteReady}>
         <h2>Price details</h2>

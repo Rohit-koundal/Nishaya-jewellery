@@ -846,3 +846,7 @@
 .sc-cod-verification__actions button { border: 0; background: transparent; color: var(--app-primary, #8a0f36); font-size: 12px; font-weight: 800; }
 .sc-cod-verification button:disabled { opacity: .5; cursor: not-allowed; }
 .sc-cod-verification small { display: block; color: #877a75; font-size: 11px; line-height: 1.5; }
+.sc-whatsapp-order-consent { display: flex; align-items: flex-start; gap: 12px; padding: 16px; margin: 12px 0; border: 1px solid var(--border-color, #e4ddd8); border-radius: 14px; background: var(--surface-color, #fff); cursor: pointer; }
+.sc-whatsapp-order-consent input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--app-primary, #711c35); }
+.sc-whatsapp-order-consent strong { display: block; font-size: 14px; line-height: 1.5; }
+.sc-whatsapp-order-consent small { display: block; margin-top: 5px; font-size: 12px; line-height: 1.6; color: var(--text-secondary, #625b61); }

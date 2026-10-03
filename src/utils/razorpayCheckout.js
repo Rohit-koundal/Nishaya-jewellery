@@ -87,6 +87,9 @@ export async function openRazorpayCheckout({
   if (!orderId) {
     throw new Error('Unable to start payment. Please try again.');
   }
+  if (!Number.isSafeInteger(amount) || amount < 100) {
+    throw new Error('Online payment amount must be at least Rs. 1. Please refresh your checkout total.');
+  }
 
   await loadRazorpayScript();
 

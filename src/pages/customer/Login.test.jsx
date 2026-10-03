@@ -26,6 +26,21 @@ describe('customer login', () => {
 
   afterEach(() => jest.useRealTimers());
 
+  test('explains SMS or automated-call delivery before requesting an OTP', () => {
+    render(<Login route="/login" />);
+    expect(screen.getByRole('note', { name: 'OTP delivery information' })).toHaveTextContent('Your login OTP may arrive by SMS or an automated phone call.');
+    expect(screen.getByText('Never share your OTP with anyone.')).toBeVisible();
+    expect(mockAuth.sendOtp).not.toHaveBeenCalled();
+    expect(mockAuth.resendOtp).not.toHaveBeenCalled();
+  });
+
+  test('delivery guidance remains visible when the OTP screen is opened directly', () => {
+    renderOtpStep();
+    expect(screen.getByRole('note', { name: 'OTP delivery information' })).toBeVisible();
+    expect(screen.getByText(/Check your SMS messages and incoming calls/)).toBeVisible();
+    expect(mockAuth.sendOtp).not.toHaveBeenCalled();
+  });
+
   test('accepted requests show honest delivery guidance and a safe support reference', async () => {
     const reference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
     mockAuth.sendOtp.mockResolvedValueOnce({ otpMode: 'production', deliveryStatus: 'accepted', supportReference: reference, retryAfter: 45, message: 'OTP sent successfully' });
@@ -33,7 +48,8 @@ describe('customer login', () => {
     fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByText('OTP requested. SMS delivery may take a moment.')).toBeVisible();
+    expect(await screen.findByText('OTP requested. Please check your SMS messages or incoming calls.')).toBeVisible();
+    expect(screen.getByRole('note', { name: 'OTP delivery information' })).toBeVisible();
     expect(screen.getByText(reference)).toBeVisible();
     expect(screen.getByText('00:45')).toBeVisible();
     expect(screen.queryByText('OTP sent successfully')).not.toBeInTheDocument();
@@ -66,13 +82,13 @@ describe('customer login', () => {
     jest.setSystemTime(started);
     const reference = '01564fe1-0046-434a-8f91-b4c6c8549a3f';
     mockAuth.sendOtp.mockResolvedValueOnce({ otpMode: 'production', deliveryStatus: 'accepted', supportReference: reference, retryAfter: 50 });
-    const first = render(<Login route="/login" />);
+    const { unmount } = render(<Login route="/login" />);
     fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByText('00:50')).toBeVisible();
     const deadline = JSON.parse(localStorage.getItem('samira_login_otp_state')).cooldownExpiresAt;
-    first.unmount();
+    unmount();
     jest.setSystemTime(new Date(deadline - 20000));
     render(<Login route="/login?step=otp&phone=9876543210&consent=1" />);
     expect(screen.getByText('00:20')).toBeVisible();
@@ -86,6 +102,7 @@ describe('customer login', () => {
     fireEvent.paste(screen.getByLabelText('OTP digit 1'), { clipboardData: { getData: () => '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Resend OTP' }));
     expect(await screen.findByText('00:25')).toBeVisible();
+    expect(screen.getByText('OTP requested. Please check your SMS messages or incoming calls.')).toBeVisible();
     expect(otpInputs().map(input => input.value).join('')).toBe('');
     expect(screen.getByRole('button', { name: 'Verify OTP' })).toBeDisabled();
   });
@@ -100,13 +117,13 @@ describe('customer login', () => {
     expect(screen.getByRole('button', { name: 'Resend OTP' })).toBeDisabled();
   });
 
-  test('duplicate form submissions trigger only one SMS request', async () => {
+  test('duplicate form submissions trigger only one OTP request', async () => {
     let resolve;
     mockAuth.sendOtp.mockReturnValueOnce(new Promise(done => { resolve = done; }));
     render(<Login route="/login" />);
     fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9876543210' } });
     fireEvent.click(screen.getByRole('checkbox'));
-    const form = screen.getByRole('button', { name: 'Continue' }).closest('form');
+    const form = screen.getByRole('form', { name: 'Login or signup' });
     fireEvent.submit(form);
     fireEvent.submit(form);
     expect(mockAuth.sendOtp).toHaveBeenCalledTimes(1);
@@ -176,7 +193,8 @@ describe('customer login', () => {
     fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9816978086' } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByText(/No SMS is needed/)).toHaveTextContent('123456');
+    expect(await screen.findByText(/No SMS or call is needed/)).toHaveTextContent('123456');
+    expect(screen.queryByRole('note', { name: 'OTP delivery information' })).not.toBeInTheDocument();
     expect(screen.queryByText(/^Sent to /)).not.toBeInTheDocument();
     fireEvent.paste(screen.getByLabelText('OTP digit 1'), { clipboardData: { getData: () => '123456' } });
     fireEvent.click(screen.getByRole('button', { name: 'Verify OTP' }));
@@ -190,12 +208,14 @@ describe('customer login', () => {
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(await screen.findByRole('button', { name: 'Verify OTP' })).toBeVisible();
-    expect(screen.queryByText(/No SMS is needed/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No SMS or call is needed/)).not.toBeInTheDocument();
+    expect(screen.getByText('OTP requested. Please check your SMS messages or incoming calls.')).toBeVisible();
   });
 
   test('the storefront login prompt accepts local numbers beginning with 91', () => {
     const onContinue = jest.fn();
     render(<LoginPrompt open onClose={jest.fn()} onContinue={onContinue} />);
+    expect(screen.getByRole('note', { name: 'OTP delivery information' })).toHaveTextContent('Your login OTP may arrive by SMS or an automated phone call.');
     fireEvent.change(screen.getByPlaceholderText('Mobile Number*'), { target: { value: '9123456789' } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
@@ -285,7 +305,7 @@ describe('customer login', () => {
     fireEvent.click(resend);
 
     await waitFor(() => expect(mockAuth.resendOtp).toHaveBeenCalledWith('9876543086'));
-    expect(await screen.findByText(/OTP sent again/i)).toBeVisible();
+    expect(await screen.findByText('OTP requested. Please check your SMS messages or incoming calls.')).toBeVisible();
     expect(resend).toBeDisabled();
   });
 

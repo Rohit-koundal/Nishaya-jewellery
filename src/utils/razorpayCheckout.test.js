@@ -73,13 +73,31 @@ describe('payment window lifecycle', () => {
 
   test('a stalled gateway script times out, is removed and can be retried', async () => {
     delete window.Razorpay; jest.useFakeTimers();
-    const first = openRazorpayCheckout({ key: 'test-key', orderId: 'test-order', onSuccess: jest.fn() });
-    const firstCheck = expect(first).rejects.toThrow('took too long');
-    jest.advanceTimersByTime(20000); await firstCheck;
+    const first = openRazorpayCheckout({ key: 'test-key', orderId: 'test-order', amount: 100, onSuccess: jest.fn() });
+    const firstCheck = first.catch(error => error);
+    jest.advanceTimersByTime(20000);
+    expect(await firstCheck).toEqual(expect.objectContaining({ message: expect.stringContaining('took too long') }));
     expect(document.querySelector('script[src*="checkout.razorpay.com"]')).toBeNull();
-    const second = openRazorpayCheckout({ key: 'test-key', orderId: 'test-order', onSuccess: jest.fn() });
-    const secondCheck = expect(second).rejects.toThrow('Failed to load');
+    const second = openRazorpayCheckout({ key: 'test-key', orderId: 'test-order', amount: 100, onSuccess: jest.fn() });
+    const secondCheck = second.catch(error => error);
     document.querySelector('script[src*="checkout.razorpay.com"]').onerror();
-    await secondCheck;
+    expect(await secondCheck).toEqual(expect.objectContaining({ message: expect.stringContaining('Failed to load') }));
+  });
+
+  test.each([undefined, null, '100', 0, 99, 100.5, NaN, Infinity])('rejects invalid amount %s before opening the gateway', async amount => {
+    await expect(openRazorpayCheckout({ key: 'test-key', orderId: 'test-order', amount })).rejects.toThrow('at least Rs. 1');
+    expect(window.Razorpay).not.toHaveBeenCalled();
+  });
+
+  test('opens Standard Checkout with the server order, public key and paise amount', async () => {
+    const onSuccess = jest.fn().mockResolvedValue('verified');
+    const { promise } = await launch({ amount: 100, preferredMethod: 'CARD', onSuccess });
+    expect(options).toMatchObject({ key: 'test-key', order_id: 'test-order', amount: 100, currency: 'INR', method: 'card' });
+    expect(options).not.toHaveProperty('key_secret');
+    expect(options).not.toHaveProperty('callback_url');
+    const response = { razorpay_order_id: 'test-order', razorpay_payment_id: 'pay_test', razorpay_signature: 'signed' };
+    options.handler(response);
+    await expect(promise).resolves.toBe('verified');
+    expect(onSuccess).toHaveBeenCalledWith(response);
   });
 });

@@ -3,6 +3,7 @@ import { Button, Card, CardContent, Dialog, DialogContent } from '../ui';
 import { cn } from '../../lib/utils';
 import { clearOtpState } from '../../utils/loginOtpStorage';
 import { normalizeIndianPhone } from '../../utils/phoneFormatter';
+import OtpDeliveryNotice from './OtpDeliveryNotice';
 
 export { clearLoginPromptDismissed, markLoginPromptDismissed, isLoginPromptDismissed } from '../../utils/loginPromptStorage';
 
@@ -52,6 +53,7 @@ export default function LoginPrompt({ open, onClose, onContinue }) {
               {phone && !normalizedPhone ? (
                 <p className="text-[12px] font-medium text-[#c81e4a]">Enter a valid 10-digit mobile number starting with 6-9.</p>
               ) : null}
+              <OtpDeliveryNotice />
               <div className="label-text flex items-start gap-3 text-slate-600">
                 <input id="login-prompt-consent" type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-rose" />
                 <p>

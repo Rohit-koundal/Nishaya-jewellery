@@ -1,6 +1,7 @@
 export const SETTINGS_CHANGED_EVENT = 'samira:settings-changed';
 export const SETTINGS_STORAGE_KEY = 'samira:settings-revision';
 export const SETTINGS_SECTIONS = [
+  { id: 'notifications', title: 'Order notifications', note: 'Customer confirmations and admin alerts, with delivery monitoring.', icon: 'contact', keywords: 'email Brevo inbox alert WhatsApp' },
   { id: 'identity', title: 'Brand & identity', note: 'Your name, logo and browser icon, consistent across your store.', icon: 'brand', keywords: 'logo company favicon' },
   { id: 'business', title: 'Business & invoices', note: 'Seller information customers see on receipts and invoices.', icon: 'invoice', keywords: 'GST tax receipt' },
   { id: 'contact', title: 'Contact & support', note: 'Help customers reach the right person, at the right time.', icon: 'contact', keywords: 'email phone address whatsapp footer hours' },
@@ -13,7 +14,7 @@ export const SETTINGS_SECTIONS = [
 export const NUMBER_DEFAULTS = { freeShippingMinAmount: 999, deliveryCharge: 99, platformFee: 23, gstRate: 5, codCharge: 0, codMaxAmount: 0, codMinAmount: 0, prepaidDiscountValue: 0, codRtoRestrictionLimit: 2, rtoBlockMinOrders: 0, rtoBlockThreshold: 0, rtoRefundDeduction: 0, returnWindowDays: 7, customerReturnShippingCharge: 0, customerRestockingFeePercent: 0, exchangeReservationHours: 168, returnSlaHours: 24, returnWeightToleranceGrams: 100, highValueVerificationThreshold: 5000, minimumOrderAmount: 0 };
 export const BOOLEAN_DEFAULTS = { acceptingOrders: true, brandIdentityEnabled: false, contactDetailsEnabled: false, razorpayEnabled: false, upiEnabled: true, cardPaymentEnabled: true, netBankingEnabled: true, walletEnabled: true, codEnabled: true, codConfirmationRequired: false, smartCodVerificationEnabled: true, rtoBlockEnabled: false, returnsEnabled: true, refundDeliveryChargeOnFullReturn: false, refundPlatformFeeOnFullReturn: false, refundCodChargeOnFullReturn: false, requireProductQrScan: false, requirePackingPhotos: false, requirePackingVideo: false, requireDispatchWeight: false, requireSecuritySeal: false, requireReturnPhotos: false, requireReturnVideo: false, enableSecurityTag: false, enableCustomerRiskDetection: true, autoApproveVerifiedReturns: false, searchIndexingEnabled: true };
 export function settingsForm(data = {}) {
-  return { ...NUMBER_DEFAULTS, ...BOOLEAN_DEFAULTS, invoicePrefix: 'NJ', ...data, returnWindowUnlimited: data.returnWindowDays === null, returnWindowDays: data.returnWindowDays === null ? NUMBER_DEFAULTS.returnWindowDays : (data.returnWindowDays ?? NUMBER_DEFAULTS.returnWindowDays), socialLinks: { ...data.socialLinks }, appLinks: { ...data.appLinks } };
+  return { ...NUMBER_DEFAULTS, ...BOOLEAN_DEFAULTS, orderAdminEmailEnabled: true, orderCustomerEmailEnabled: true, orderNotificationEmail: '', orderAdminWhatsappEnabled: false, orderCustomerWhatsappEnabled: false, orderNotificationWhatsapp: '', invoicePrefix: 'NJ', ...data, returnWindowUnlimited: data.returnWindowDays === null, returnWindowDays: data.returnWindowDays === null ? NUMBER_DEFAULTS.returnWindowDays : (data.returnWindowDays ?? NUMBER_DEFAULTS.returnWindowDays), socialLinks: { ...data.socialLinks }, appLinks: { ...data.appLinks } };
 }
 export function settingsPayload(form) {
   const { _id, __v, createdAt, updatedAt, storeId, ...body } = form;

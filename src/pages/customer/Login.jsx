@@ -8,6 +8,7 @@ import { clearOtpState, readOtpState, writeOtpState } from '../../utils/loginOtp
 import { digitsOnly, PHONE_VALIDATION_MESSAGE } from '../../utils/phoneInput';
 import { normalizeIndianPhone } from '../../utils/phoneFormatter';
 import { useBrandIdentity } from '../../context/BrandIdentityContext';
+import OtpDeliveryNotice from '../../components/auth/OtpDeliveryNotice';
 
 const OTP_COOLDOWN_SECONDS = 60;
 
@@ -388,7 +389,7 @@ export default function Login({ route = '/login' }) {
         </div>
         <div className="px-5 py-5 sm:px-6">
           {step === 'otp' ? (
-            <form onSubmit={submitOtp} className="space-y-5">
+            <form aria-label="Verify login OTP" onSubmit={submitOtp} className="space-y-5">
               <div className="flex items-center gap-4">
                 <div className="grid h-20 w-20 place-items-center rounded-full bg-[#f2f6ff] text-[#2f3851]">
                   <Smartphone className="h-9 w-9" />
@@ -398,7 +399,9 @@ export default function Login({ route = '/login' }) {
                   <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">{demoOtp ? 'Demo verification for' : 'Verification code for'} {maskPhone(phone)}</p>
                 </div>
               </div>
-              {demoOtp && <p role="status" className="rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_245))] px-4 py-3 text-sm text-wine">Demo mode: enter <strong>{demoOtp}</strong>. No SMS is needed.</p>}
+              {demoOtp
+                ? <p role="status" className="rounded-xl bg-[rgb(var(--app-secondary-rgb,255_240_245))] px-4 py-3 text-sm text-wine">Demo mode: enter <strong>{demoOtp}</strong>. No SMS or call is needed.</p>
+                : <OtpDeliveryNotice />}
               <div className="grid grid-cols-6 gap-2">
                 {otp.map((digit, index) => (
                   <input
@@ -436,17 +439,18 @@ export default function Login({ route = '/login' }) {
                 </button>
                 <HelpLink />
               </div>
-              {!demoOtp && <p className="text-[11px] leading-relaxed text-slate-500">SMS can take a moment. Check your number and SMS spam folder. If it does not arrive, resend after the countdown or contact support. After resending, use only the latest code.</p>}
+              {!demoOtp && <p className="text-[11px] leading-relaxed text-slate-500">Delivery may take a moment. Check your SMS messages and incoming calls. If you do not receive a code, confirm your number and check your SMS spam folder, then resend after the countdown or contact support. After resending, use only the latest code.</p>}
               {message && <StatusMessage type={messageType} message={message} />}
             </form>
           ) : (
-            <form onSubmit={requestOtp} className="space-y-4">
+            <form aria-label="Login or signup" onSubmit={requestOtp} className="space-y-4">
               <div>
                 <h2 className="text-[18px] font-bold leading-[1.05] text-[#2f3851] sm:text-[21px]">Login or Signup</h2>
                 <p className="mt-2 text-[11px] text-slate-500 sm:text-[12px]">Enter your mobile number to receive a one-time password.</p>
               </div>
               <PhoneField value={phone} onChange={setPhoneDigits} countryCode={countryCode} />
               {phoneHint ? <p className="text-[11px] font-medium text-[#c81e4a]">{phoneHint}</p> : null}
+              <OtpDeliveryNotice />
               <div className="flex items-start gap-3 text-[11px] text-slate-600 sm:text-[12px]">
                 <input
                   id="login-consent"
@@ -484,7 +488,7 @@ function StatusMessage({ type, message, onRetry, loading, className = '' }) {
   const isError = type === 'error';
   const isSuccess = type === 'success';
   return (
-    <div className={`body-text mt-4 rounded-2xl p-4 ${className} ${isError ? 'bg-rose/10 text-wine' : isSuccess ? 'bg-emerald-50 text-emerald-800' : 'bg-blush text-wine'}`}>
+    <div role={isError ? 'alert' : 'status'} className={`body-text mt-4 rounded-2xl p-4 ${className} ${isError ? 'bg-rose/10 text-wine' : isSuccess ? 'bg-emerald-50 text-emerald-800' : 'bg-blush text-wine'}`}>
       <p className="text-[12px] font-semibold">{isError ? 'We could not continue right now' : isSuccess ? 'All set' : 'Note'}</p>
       <p className="mt-1 text-[12px] leading-[1.4]">{message}</p>
       {isError && onRetry && (
@@ -498,10 +502,10 @@ function StatusMessage({ type, message, onRetry, loading, className = '' }) {
   );
 }
 
-function otpSentMessage(response, fallback = 'OTP requested. SMS delivery may take a moment.') {
+function otpSentMessage(response) {
   if (readDemoOtp(response)) return 'Demo OTP ready. Use the code shown above.';
-  if (response?.deliveryStatus === 'accepted') return fallback;
-  return response?.message || fallback;
+  // A successful request is not proof of delivery or of the provider's channel.
+  return 'OTP requested. Please check your SMS messages or incoming calls.';
 }
 
 function readSupportReference(value) {

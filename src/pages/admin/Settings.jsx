@@ -11,6 +11,7 @@ import logoFallback from '../../assets/nishaya-jewellery-logo.svg';
 import StoreLogo from '../../components/ui/StoreLogo';
 import './Settings.css';
 import DeliverySettings from '../../components/admin/DeliverySettings';
+import OrderNotificationSettings from '../../components/admin/OrderNotificationSettings';
 
 const ICONS = { brand: Building2, invoice: ReceiptText, contact: Mail, delivery: Truck, payment: CreditCard, policy: ShieldCheck, social: Link2, website: Globe2 };
 const POLICIES = [['returnPolicy', 'Return Policy'], ['shippingPolicy', 'Shipping Policy'], ['cancellationPolicy', 'Cancellation Policy'], ['privacyPolicy', 'Privacy Policy'], ['termsConditions', 'Terms and Conditions'], ['sizeGuide', 'Size Guide'], ['faqs', 'FAQs'], ['ourStory', 'Our Story']];
@@ -130,6 +131,15 @@ export default function Settings({ route = '' }) {
                 {input('supportHours', 'Support hours', { maxLength: 200, placeholder: 'Monday-Saturday, 10 AM-7 PM IST', note: 'Displayed on the contact page and in the footer.' })}
                 {input('address', 'Store Address', { multiline: true, maxLength: 1000 })}
                 {input('footerText', 'Footer Text', { multiline: true, maxLength: 1000 })}
+              </>}
+              {active === 'notifications' && <>
+                {toggle('orderAdminEmailEnabled', 'Email admin about new orders', 'One order alert after COD booking or confirmed online payment.')}
+                {input('orderNotificationEmail', 'Admin notification email', { type: 'email', maxLength: 254, note: 'Leave empty to use the configured store owner email. This is private and is not shown on the storefront.' })}
+                {toggle('orderCustomerEmailEnabled', 'Email customers their order confirmation', 'Sent only to a verified profile email. Customers without one still receive an in-app notification.')}
+                {input('orderNotificationWhatsapp', 'Admin WhatsApp number', { type: 'tel', maxLength: 24, note: 'Include country code, e.g. +91 followed by your mobile number. Private recipient; not the public support number.' })}
+                {toggle('orderAdminWhatsappEnabled', 'WhatsApp admin about new orders', 'By enabling, you confirm this recipient has agreed to receive order alerts. Requires Meta setup and an approved admin template; WhatsApp charges may apply.')}
+                {toggle('orderCustomerWhatsappEnabled', 'Offer WhatsApp order confirmations', 'Customers must opt in at checkout. Uses their verified login number, not the shipping contact. Email remains independent; WhatsApp charges may apply.')}
+                <OrderNotificationSettings apiBase={settingsApi} revision={baseline?.updatedAt} />
               </>}
               {active === 'delivery' && <>
                 {toggle('acceptingOrders', 'Accept new orders', 'Pause new checkout while customers can still browse and view existing orders.')}

@@ -25,6 +25,33 @@ function useMobileViewport(width = 390) {
   window.matchMedia = jest.fn(query => ({ matches: width <= Number(query.match(/max-width: (\d+)/)?.[1] || 0), addEventListener: jest.fn(), removeEventListener: jest.fn() }));
 }
 
+test.each(['desktop', 'mobile'])('WhatsApp opt-in is optional, unchecked and sent explicitly on %s checkout', async viewport => {
+  if (viewport === 'mobile') useMobileViewport();
+  const originalGet = api.get.getMockImplementation();
+  api.get.mockImplementation(async path => path === '/settings/payment-methods'
+    ? { methods: [{ key: 'COD', label: 'Cash on Delivery', enabled: true }], notifications: { whatsappAvailable: true } }
+    : originalGet(path));
+  render(<Checkout navigate={jest.fn()} />);
+  if (viewport === 'mobile') fireEvent.click(await screen.findByRole('button', { name: 'Continue to payment' }));
+  const checkbox = await screen.findByRole('checkbox', { name: /Send my order confirmation on WhatsApp/ });
+  expect(checkbox).not.toBeChecked();
+  expect(screen.getByText(/ending 0081/)).toBeInTheDocument();
+  fireEvent.click(checkbox);
+  const place = await screen.findByRole('button', { name: 'Place COD Order' });
+  await waitFor(() => expect(place).toBeEnabled());
+  fireEvent.click(place);
+  await waitFor(() => expect(api.post).toHaveBeenCalledWith('/orders/cod', expect.objectContaining({ whatsappOrderUpdates: true })));
+});
+
+test('unconfigured WhatsApp is not offered and never opts the buyer in', async () => {
+  render(<Checkout navigate={jest.fn()} />);
+  const place = await screen.findByRole('button', { name: 'Place COD Order' });
+  await waitFor(() => expect(place).toBeEnabled());
+  expect(screen.queryByRole('checkbox', { name: /Send my order confirmation on WhatsApp/ })).not.toBeInTheDocument();
+  fireEvent.click(place);
+  await waitFor(() => expect(api.post).toHaveBeenCalledWith('/orders/cod', expect.objectContaining({ whatsappOrderUpdates: false })));
+});
+
 test('tablet checkout renders the address step and mobile COD submits only selected variants', async () => {
   useMobileViewport(820);
   mockCart.items = [{ ...selected, price: 1199 }, later];

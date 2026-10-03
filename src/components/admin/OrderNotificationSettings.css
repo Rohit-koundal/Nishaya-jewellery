@@ -1,0 +1,15 @@
+.order-alerts { min-width: 0; display: grid; gap: 16px; }
+.order-alerts__heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.order-alerts h3, .order-alerts h4 { font-size: 14px; font-weight: 700; }
+.order-alerts__note, .order-alerts__list { font-size: 12px; line-height: 1.8; }
+.order-alerts__list { list-style: none; padding: 0; display: grid; gap: 12px; }
+.order-alerts__list li { border: 1px solid var(--settings-line, #eaded8); border-radius: 12px; padding: 16px; display: grid; gap: 10px; grid-template-columns: 1fr auto; overflow-wrap: anywhere; }
+.order-alerts__list span, .order-alerts__list small { display: block; }
+.order-alerts__list p { grid-column: 1 / -1; }
+.order-alerts__list button { justify-self: start; grid-column: 1 / -1; }
+.order-alerts__status { font-weight: 700; color: #765b26; }
+.order-alerts__status--accepted, .order-alerts__status--sent, .order-alerts__status--delivered, .order-alerts__status--read { color: #286341; }
+.order-alerts__status--blocked, .order-alerts__status--failed, .order-alerts__status--uncertain { color: #a51a38; }
+.order-alerts code { overflow-wrap: anywhere; }
+.order-alerts .store-settings__tip p + p { margin-top: 8px; }
+@media (max-width: 600px) { .order-alerts__list li { grid-template-columns: minmax(0, 1fr); } }
